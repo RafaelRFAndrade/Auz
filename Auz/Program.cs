@@ -1,3 +1,6 @@
+using Application.Interfaces;
+using Application.Services;
+using Infra.Repositories;
 using Infra.Repositories.Base;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -15,15 +18,13 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddTransient<IUsuarioRepository, UsuarioRepository>();
 
 //Services
-builder.Services.AddTransient<UsuarioService>();
-
+builder.Services.AddTransient<IUsuarioService, UsuarioService>();
 
 builder.Services.AddDbContext<RepositoryBase>(options =>
-            options.UseMySql(
-                builder.Configuration.GetConnectionString("DefaultConnection"),
-                new MySqlServerVersion(new Version(9, 1, 0))
-            )
-        );
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("DefaultConnection")
+    )
+);
 
 builder.Services.AddAuthentication(options =>
 {

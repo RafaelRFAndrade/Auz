@@ -12,7 +12,9 @@ namespace Infra.Repositories
 
         public List<Usuario> ListarUsuarios()
         {
-            return Usuario.ToList();
+            throw new NotImplementedException();
         }
+
+        public void Inserir(Usuario usuario) => Add(usuario);
     }
 }

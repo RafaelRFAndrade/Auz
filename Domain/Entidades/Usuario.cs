@@ -1,37 +1,36 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using Domain.Enums;
 
 namespace Domain.Entidades
 {
+    [Table("dbo.Usuario")]
     public class Usuario
     {
         [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long Id { get; set; }
 
         [Required]
-        [StringLength(36)]
-        public Guid Codigo { get; set; } = Guid.NewGuid();
+        public Guid Codigo { get; set; }
 
-        [StringLength(155)]
+        public Situacao Situacao { get; set; }
+
+        [StringLength(50)]
         public string Nome { get; set; }
 
         [Required]
-        [StringLength(155)]
+        [StringLength(255)]
         [EmailAddress]
         public string Email { get; set; }
 
         [Required]
-        [StringLength(255)]
+        [StringLength(100)]
         public string Senha { get; set; }
 
-        [Column(TypeName = "timestamp")]
-        public DateTime DtInclusao { get; set; } = DateTime.Now;
+        public DateTime DtInclusao { get; set; }
 
-        [Column(TypeName = "timestamp")]
-        public DateTime DtAtualizacao { get; set; } = DateTime.Now;
+        public DateTime DtSituacao { get; set; }
 
-        public Situacao Situacao { get; set; }
+        public TipoPermissao TipoPermissao {  get; set; }
     }
 }

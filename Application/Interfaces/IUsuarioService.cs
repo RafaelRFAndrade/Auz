@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Application.Messaging.Request;
 
 namespace Application.Interfaces
 {
-    internal interface IUsuarioService
+    public interface IUsuarioService
     {
+        void Cadastrar(CadastroUsuarioRequest request);
     }
 }
