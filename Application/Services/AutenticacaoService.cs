@@ -7,10 +7,11 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Application.Messaging.Exception;
+using Application.Interfaces;
 
 namespace Application.Services
 {
-    public class AutenticacaoService
+    public class AutenticacaoService : IAutenticacaoService
     {
         private readonly IConfiguration _configuration;
 

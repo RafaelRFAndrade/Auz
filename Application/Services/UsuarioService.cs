@@ -10,11 +10,12 @@ namespace Application.Services
     public class UsuarioService : IUsuarioService
     {
         private readonly IUsuarioRepository _usuarioRepository;
-        private readonly AutenticacaoService autenticacaoService;
+        private readonly IAutenticacaoService _autenticacaoService;
 
-        public UsuarioService(IUsuarioRepository usuarioRepository) 
+        public UsuarioService(IUsuarioRepository usuarioRepository, IAutenticacaoService autenticacaoService) 
         {
             _usuarioRepository = usuarioRepository;
+            _autenticacaoService = autenticacaoService;
         }
 
         public void Cadastrar(CadastroUsuarioRequest request)
@@ -29,12 +30,13 @@ namespace Application.Services
                 Codigo = Guid.NewGuid(),
                 Situacao = Situacao.Ativo,
                 Email = request.Email,
+                Nome = request.Nome,
                 DtInclusao = DateTime.Now,
                 TipoPermissao = request.TipoPermissao,
                 Senha = request.Senha
             };
 
-            usuario.Senha = autenticacaoService.Encriptador(usuario, usuario.Senha);
+            usuario.Senha = _autenticacaoService.Encriptador(usuario, usuario.Senha);
 
             _usuarioRepository.Inserir(usuario);
         }

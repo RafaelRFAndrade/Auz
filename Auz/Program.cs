@@ -19,6 +19,7 @@ builder.Services.AddTransient<IUsuarioRepository, UsuarioRepository>();
 
 //Services
 builder.Services.AddTransient<IUsuarioService, UsuarioService>();
+builder.Services.AddTransient<IAutenticacaoService, AutenticacaoService>();
 
 builder.Services.AddDbContext<RepositoryBase>(options =>
     options.UseSqlServer(

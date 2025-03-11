@@ -4,7 +4,7 @@ using Domain.Enums;
 
 namespace Domain.Entidades
 {
-    [Table("dbo.Usuario")]
+    [Table("Usuario")]
     public class Usuario
     {
         [Key]
