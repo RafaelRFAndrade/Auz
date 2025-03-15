@@ -4,6 +4,7 @@ using Application.Messaging.Request;
 using Domain.Entidades;
 using Domain.Enums;
 using Infra.Repositories;
+using Microsoft.AspNetCore.Identity;
 
 namespace Application.Services
 {
@@ -39,6 +40,23 @@ namespace Application.Services
             usuario.Senha = _autenticacaoService.Encriptador(usuario, usuario.Senha);
 
             _usuarioRepository.Inserir(usuario);
+        }
+
+        public Usuario Login(Messaging.Request.LoginRequest request)
+        {
+            var usuario = _usuarioRepository.ObterPorEmail(request.Email);
+
+            if (usuario is null)
+                throw new AuzException("Usuário não existe.");
+
+            var passwordHasher = new PasswordHasher<Usuario>();
+
+            var verificarSenha = passwordHasher.VerifyHashedPassword(usuario, usuario.Senha, request.Senha);
+
+            if (verificarSenha == PasswordVerificationResult.Failed)
+                throw new AuzException("Senha inválida.");
+
+            return usuario;
         }
     }
 }

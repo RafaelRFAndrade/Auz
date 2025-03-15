@@ -6,5 +6,6 @@ namespace Infra.Repositories
     {
         List<Usuario> ListarUsuarios();
         void Inserir(Usuario usuario);
+        Usuario ObterPorEmail(string email);
     }
 }

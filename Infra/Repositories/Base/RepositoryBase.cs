@@ -10,6 +10,8 @@ namespace Infra.Repositories.Base
         }
 
         public DbSet<Usuario> Usuario { get; set; }
+        public DbSet<Paciente> Paciente { get; set; }
+        public DbSet<Medico> Medico { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

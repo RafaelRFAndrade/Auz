@@ -10,11 +10,26 @@ namespace Infra.Repositories
         {
         }
 
+        public void Inserir(Usuario usuario) => Add(usuario);
+
         public List<Usuario> ListarUsuarios()
         {
             throw new NotImplementedException();
         }
 
-        public void Inserir(Usuario usuario) => Add(usuario);
+        public Usuario ObterPorEmail(string email)
+        {
+            const string sql =
+                """
+                SELECT TOP 1
+                    *
+                FROM 
+                    dbo.Usuario WITH(NOLOCK)
+                WHERE
+                    Email = @p0
+                """;
+
+            return Database.SqlQueryRaw<Usuario>(sql, email).FirstOrDefault();
+        }
     }
 }
