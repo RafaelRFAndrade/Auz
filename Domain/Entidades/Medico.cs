@@ -18,10 +18,13 @@ namespace Domain.Entidades
         public Situacao Situacao { get; set; }
 
         [StringLength(50)]
-        public string Nome { get; set; }
+        public string? Nome { get; set; }
 
         public DateTime DtInclusao { get; set; }
 
         public DateTime DtSituacao { get; set; }
+
+        [StringLength(15)]
+        public string CRM { get; set; }
     }
 }

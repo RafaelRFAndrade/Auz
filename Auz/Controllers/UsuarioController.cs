@@ -1,6 +1,6 @@
 ﻿using Application.Interfaces;
 using Application.Messaging.Exception;
-using Application.Messaging.Request;
+using Application.Messaging.Request.Usuario;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Web.Controllers.Base;
@@ -41,7 +41,7 @@ namespace Web.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex.Message);
-                return StatusCode(500, new { Sucesso = false, Mensagem = "Fudeu." });
+                return StatusCode(500, new { Sucesso = false, Mensagem = "Ocorreu um erro na requisição." });
             }
         }
 
@@ -61,12 +61,12 @@ namespace Web.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex.Message);
-                return StatusCode(500, new { Sucesso = false, Mensagem = "Fudeu." });
+                return StatusCode(500, new { Sucesso = false, Mensagem = "Ocorreu um erro na requisição." });
             }
         }
 
         [HttpPost("Login")]
-        public IActionResult Logar(Application.Messaging.Request.LoginRequest request)
+        public IActionResult Logar(LoginRequest request)
         {
             try
             {

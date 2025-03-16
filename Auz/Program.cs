@@ -1,12 +1,15 @@
 using Application.Interfaces;
 using Application.Services;
-using Infra.Repositories;
+using Infra.Repositories.Agendamentos;
+using Infra.Repositories.Atendimentos;
 using Infra.Repositories.Base;
+using Infra.Repositories.Medicos;
+using Infra.Repositories.Pacientes;
+using Infra.Repositories.Usuarios;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using Web.Controllers.Base;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,10 +20,18 @@ builder.Services.AddSwaggerGen();
 
 //Repos
 builder.Services.AddTransient<IUsuarioRepository, UsuarioRepository>();
+builder.Services.AddTransient<IAtendimentoRepository, AtendimentoRepository>();
+builder.Services.AddTransient<IPacienteRepository, PacienteRepository>();
+builder.Services.AddTransient<IMedicoRepository, MedicoRepository>();
+builder.Services.AddTransient<IAgendamentoRepository, AgendamentoRepository>();
 
 //Services
 builder.Services.AddTransient<IUsuarioService, UsuarioService>();
 builder.Services.AddTransient<IAutenticacaoService, AutenticacaoService>();
+builder.Services.AddTransient<IAtendimentoService, AtendimentoService>();
+builder.Services.AddTransient<IPacienteService, PacienteService>();
+builder.Services.AddTransient<IMedicoService, MedicoService>();
+builder.Services.AddTransient<IAgendamentoService, AgendamentoService>();
 
 builder.Services.AddDbContext<RepositoryBase>(options =>
     options.UseSqlServer(

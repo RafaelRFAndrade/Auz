@@ -2,7 +2,7 @@
 using Infra.Repositories.Base;
 using Microsoft.EntityFrameworkCore;
 
-namespace Infra.Repositories
+namespace Infra.Repositories.Usuarios
 {
     public class UsuarioRepository : RepositoryBase, IUsuarioRepository
     {
@@ -10,7 +10,11 @@ namespace Infra.Repositories
         {
         }
 
-        public void Inserir(Usuario usuario) => Add(usuario);
+        public void Inserir(Usuario usuario)
+        {
+            Add(usuario);
+            SaveChanges();
+        }
 
         public List<Usuario> ListarUsuarios()
         {

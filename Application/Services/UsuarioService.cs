@@ -1,9 +1,9 @@
 ﻿using Application.Interfaces;
 using Application.Messaging.Exception;
-using Application.Messaging.Request;
+using Application.Messaging.Request.Usuario;
 using Domain.Entidades;
 using Domain.Enums;
-using Infra.Repositories;
+using Infra.Repositories.Usuarios;
 using Microsoft.AspNetCore.Identity;
 
 namespace Application.Services
@@ -21,10 +21,7 @@ namespace Application.Services
 
         public void Cadastrar(CadastroUsuarioRequest request)
         {
-            if (string.IsNullOrWhiteSpace(request.Nome)
-                || string.IsNullOrWhiteSpace(request.Senha)
-                || string.IsNullOrWhiteSpace(request.Email))
-                throw new AuzException("Campos ausentes");
+            request.Validar();
 
             var usuario = new Usuario
             {
@@ -42,7 +39,7 @@ namespace Application.Services
             _usuarioRepository.Inserir(usuario);
         }
 
-        public Usuario Login(Messaging.Request.LoginRequest request)
+        public Usuario Login(LoginRequest request)
         {
             var usuario = _usuarioRepository.ObterPorEmail(request.Email);
 

@@ -1,12 +1,10 @@
 ﻿using Domain.Entidades;
-using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using Application.Messaging.Exception;
 using Application.Interfaces;
 
 namespace Application.Services
@@ -47,23 +45,6 @@ namespace Application.Services
         {
             var passwordHasher = new PasswordHasher<Usuario>();
             return passwordHasher.HashPassword(usuario, senha);
-        }
-
-        public bool ValidarLogin(LoginRequest loginRequest)
-        {
-            var usuario = /*_usuarioRepository.ObterPorEmail(loginRequest.Email);*/ new Usuario();
-
-            if (usuario is null)
-                throw new AuzException("Usuário não existe.");
-
-            var passwordHasher = new PasswordHasher<Usuario>();
-
-            var verificarSenha = passwordHasher.VerifyHashedPassword(usuario, usuario.Senha, loginRequest.Password);
-
-            if (verificarSenha == PasswordVerificationResult.Failed)
-                return false;
-
-            return true;
         }
     }
 }

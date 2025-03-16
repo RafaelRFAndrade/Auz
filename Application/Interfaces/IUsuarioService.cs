@@ -1,4 +1,4 @@
-﻿using Application.Messaging.Request;
+﻿using Application.Messaging.Request.Usuario;
 using Domain.Entidades;
 
 namespace Application.Interfaces
@@ -6,6 +6,6 @@ namespace Application.Interfaces
     public interface IUsuarioService
     {
         void Cadastrar(CadastroUsuarioRequest request);
-        Usuario Login(Messaging.Request.LoginRequest request);
+        Usuario Login(LoginRequest request);
     }
 }

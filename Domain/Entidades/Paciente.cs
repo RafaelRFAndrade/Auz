@@ -13,17 +13,25 @@ namespace Domain.Entidades
         [Required]
         public Guid Codigo { get; set; }
 
-        public Guid CodigoMedico { get; set; }
-
         public Guid CodigoUsuario { get; set; }
 
         public Situacao Situacao { get; set; }
 
+        [Required]
         [StringLength(50)]
         public string Nome { get; set; }
 
         public DateTime DtInclusao { get; set; }
 
         public DateTime DtSituacao { get; set; }
+
+        [StringLength(11)]
+        public string? DocumentoFederal { get; set; }
+
+        [StringLength(12)]
+        public string? Telefone { get; set; }
+
+        [StringLength(255)]
+        public string? Email { get; set; }
     }
 }
