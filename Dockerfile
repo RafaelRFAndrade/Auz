@@ -2,7 +2,7 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /app
 
 COPY *.sln .
-COPY Web/*.csproj ./Web/
+COPY Auz/*.csproj ./Auz/
 COPY Domain/*.csproj ./Domain/
 COPY Application/*.csproj ./Application/
 COPY Infra/*.csproj ./Infra/
@@ -22,4 +22,4 @@ ENV ASPNETCORE_URLS=http://+:80
 EXPOSE 80
 
 # Iniciar a aplicação
-ENTRYPOINT ["dotnet", "Web.dll"]
+ENTRYPOINT ["dotnet", "Auz.dll"]
