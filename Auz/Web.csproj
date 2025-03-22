@@ -5,6 +5,7 @@
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+		<AssemblyName>Web</AssemblyName>
 	</PropertyGroup>
 
 	<ItemGroup>
