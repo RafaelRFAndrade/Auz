@@ -74,7 +74,7 @@ namespace Web.Controllers
 
                 var token = _autenticacaoService.GenerateToken(usuario);
 
-                return Ok(new { Token = token });
+                return Ok(new { Token = token, NomeUsuario = usuario.Nome });
             }
             catch (AuzException ex)
             {
