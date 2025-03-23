@@ -1,0 +1,168 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v3
+
+      - name: Configurar .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Configurar Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Login no DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build e Push da imagem
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: ./Dockerfile.final
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/auz-core-api:latest
+
+      - name: Instalar dependências para o script de deploy
+        run: |
+          dotnet new console -o DeployScript
+          cd DeployScript
+          dotnet add package Newtonsoft.Json
+          dotnet add package System.Net.Http.Json
+
+      - name: Criar script de deploy em C#
+        run: |
+          cat > DeployScript/Program.cs << 'EOL'
+          using System;
+          using System.Net.Http;
+          using System.Net.Http.Headers;
+          using System.Net.Http.Json;
+          using System.Text;
+          using System.Threading.Tasks;
+          using System.Collections.Generic;
+          using System.Linq;
+          using Newtonsoft.Json;
+
+          class Program
+          {
+              static async Task Main(string[] args)
+              {
+                  string portainerUrl = Environment.GetEnvironmentVariable("PORTAINER_URL");
+                  string username = Environment.GetEnvironmentVariable("USERNAME");
+                  string password = Environment.GetEnvironmentVariable("PASSWORD");
+                  string dockerImage = Environment.GetEnvironmentVariable("DOCKER_USERNAME") + "/auz-core-api:latest";
+                  
+                  using var client = new HttpClient();
+                  client.BaseAddress = new Uri(portainerUrl);
+                  
+                  Console.WriteLine("Autenticando no Portainer...");
+                  var authData = new { Username = username, Password = password };
+                  var response = await client.PostAsJsonAsync("/api/auth", authData);
+                  
+                  if (!response.IsSuccessStatusCode)
+                  {
+                      Console.WriteLine($"Falha na autenticação: {response.StatusCode}");
+                      Environment.Exit(1);
+                  }
+                  
+                  var authResponse = await response.Content.ReadFromJsonAsync<AuthResponse>();
+                  client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authResponse.jwt);
+                  
+                  Console.WriteLine("Procurando containers existentes...");
+                  var containersResponse = await client.GetAsync("/api/endpoints/1/docker/containers/json?all=true");
+                  var containers = await containersResponse.Content.ReadFromJsonAsync<Container[]>();
+                  
+                  var auzContainer = Array.Find(containers, c => c.Names.Any(n => n.Contains("auz-api")));
+                  
+                  if (auzContainer != null)
+                  {
+                      Console.WriteLine($"Removendo container existente: {auzContainer.Id}");
+                      await client.DeleteAsync($"/api/endpoints/1/docker/containers/{auzContainer.Id}?force=true");
+                  }
+                  
+                  Console.WriteLine("Criando novo container...");
+                  
+                  // Definição da configuração do container
+                  var portBindings = new Dictionary<string, object>();
+                  portBindings.Add("80/tcp", new[] { new { HostPort = "8080" } });
+                  
+                  var createData = new
+                  {
+                      Name = "auz-api",
+                      Image = dockerImage,
+                      ExposedPorts = new Dictionary<string, object>
+                      {
+                          { "80/tcp", new { } }
+                      },
+                      HostConfig = new
+                      {
+                          PortBindings = portBindings,
+                          RestartPolicy = new { Name = "always" }
+                      },
+                      Env = new[] 
+                      {
+                          "ASPNETCORE_ENVIRONMENT=Production",
+                          "ASPNETCORE_URLS=http://+:80"
+                      }
+                  };
+                  
+                  var createJson = JsonConvert.SerializeObject(createData);
+                  var createContent = new StringContent(createJson, Encoding.UTF8, "application/json");
+                  var createResponse = await client.PostAsync("/api/endpoints/1/docker/containers/create?name=auz-api", createContent);
+                  
+                  if (!createResponse.IsSuccessStatusCode)
+                  {
+                      Console.WriteLine($"Falha na criação do container: {createResponse.StatusCode}");
+                      var error = await createResponse.Content.ReadAsStringAsync();
+                      Console.WriteLine(error);
+                      Environment.Exit(1);
+                  }
+                  
+                  var createResult = await createResponse.Content.ReadFromJsonAsync<CreateContainerResponse>();
+                  
+                  Console.WriteLine($"Iniciando container: {createResult.Id}");
+                  await client.PostAsync($"/api/endpoints/1/docker/containers/{createResult.Id}/start", null);
+                  
+                  Console.WriteLine("Deploy concluído com sucesso!");
+              }
+          }
+
+          class AuthResponse
+          {
+              public string jwt { get; set; }
+          }
+
+          class Container
+          {
+              public string Id { get; set; }
+              public string[] Names { get; set; }
+          }
+
+          class CreateContainerResponse
+          {
+              public string Id { get; set; }
+          }
+          EOL
+
+      - name: Executar script de deploy
+        run: |
+          cd DeployScript
+          dotnet run
+        env:
+          PORTAINER_URL: ${{ secrets.PORTAINER_URL }}
+          USERNAME: ${{ secrets.USERNAME }}
+          PASSWORD: ${{ secrets.PASSWORD }}
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
