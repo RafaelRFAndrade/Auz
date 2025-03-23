@@ -6,271 +6,523 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace PortainerDeploy
 {
     class Program
     {
+        private static readonly HttpClient client = new HttpClient();
+        private static readonly JsonSerializerOptions jsonOptions = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        };
+        private static string? authToken;
+        private static bool debug = false;
+
         static async Task Main(string[] args)
         {
-            Console.WriteLine("Utilitário de Deploy para Portainer");
-            Console.WriteLine("===================================");
-
-            // Ler as configurações das variáveis de ambiente para CI/CD
-            string? portainerUrl = Environment.GetEnvironmentVariable("PORTAINER_URL");
-            string? username = Environment.GetEnvironmentVariable("USERNAME");
-            string? password = Environment.GetEnvironmentVariable("PASSWORD");
-            string? dockerUsername = Environment.GetEnvironmentVariable("DOCKER_USERNAME");
-            string? containerName =
-                Environment.GetEnvironmentVariable("CONTAINER_NAME") ?? "auz-api";
-            string? hostPort = Environment.GetEnvironmentVariable("HOST_PORT") ?? "8080";
-
-            bool interactive = args.Contains("--interactive") || args.Contains("-i");
-
-            // Se estiver no modo interativo, solicitar entrada do usuário
-            if (interactive)
-            {
-                Console.Write("URL do Portainer: ");
-                portainerUrl = Console.ReadLine();
-
-                Console.Write("Usuário Portainer: ");
-                username = Console.ReadLine();
-
-                Console.Write("Senha Portainer: ");
-                password = Console.ReadLine();
-
-                Console.Write("Nome da imagem Docker (ex: usuario/auz-core-api:latest): ");
-                string? inputDockerImage = Console.ReadLine();
-                if (!string.IsNullOrEmpty(inputDockerImage))
-                {
-                    dockerUsername = inputDockerImage.Split('/')[0];
-                }
-
-                Console.Write("Nome do container: ");
-                string? inputContainerName = Console.ReadLine();
-                if (!string.IsNullOrEmpty(inputContainerName))
-                {
-                    containerName = inputContainerName;
-                }
-
-                Console.Write("Porta do host (ex: 8080): ");
-                string? inputHostPort = Console.ReadLine();
-                if (!string.IsNullOrEmpty(inputHostPort))
-                {
-                    hostPort = inputHostPort;
-                }
-            }
-
-            // Validar variáveis obrigatórias
-            if (string.IsNullOrEmpty(portainerUrl))
-            {
-                Console.WriteLine("ERRO: A URL do Portainer não foi especificada");
-                Environment.Exit(1);
-            }
-
-            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
-            {
-                Console.WriteLine("ERRO: Credenciais do Portainer não foram especificadas");
-                Environment.Exit(1);
-            }
-
-            if (string.IsNullOrEmpty(dockerUsername))
-            {
-                Console.WriteLine("ERRO: Nome de usuário do Docker não foi especificado");
-                Environment.Exit(1);
-            }
-
-            string dockerImage = $"{dockerUsername}/auz-core-api:latest";
-            Console.WriteLine($"Imagem Docker a ser usada: {dockerImage}");
-            Console.WriteLine($"Container a ser criado: {containerName} na porta {hostPort}");
-
             try
             {
-                await DeployContainer(
-                    portainerUrl,
-                    username,
-                    password,
-                    dockerImage,
-                    containerName,
-                    hostPort
+                bool interactive = args.Length > 0 && args[0] == "--interactive";
+                debug = Environment.GetEnvironmentVariable("DEBUG")?.ToLower() == "true";
+
+                string? portainerUrl = Environment.GetEnvironmentVariable("PORTAINER_URL");
+                string? username = Environment.GetEnvironmentVariable("USERNAME");
+                string? password = Environment.GetEnvironmentVariable("PASSWORD");
+                string? dockerUsername = Environment.GetEnvironmentVariable("DOCKER_USERNAME");
+                string? containerName = Environment.GetEnvironmentVariable("CONTAINER_NAME");
+                string? hostPort = Environment.GetEnvironmentVariable("HOST_PORT");
+
+                if (interactive)
+                {
+                    Console.WriteLine("Executando em modo interativo.");
+
+                    Console.Write("URL do Portainer (com /api no final): ");
+                    portainerUrl = Console.ReadLine()?.Trim();
+
+                    Console.Write("Nome de usuário do Portainer: ");
+                    username = Console.ReadLine()?.Trim();
+
+                    Console.Write("Senha do Portainer: ");
+                    password = Console.ReadLine()?.Trim();
+
+                    Console.Write("Nome de usuário do Docker Hub: ");
+                    dockerUsername = Console.ReadLine()?.Trim();
+
+                    Console.Write("Nome do container: ");
+                    containerName = Console.ReadLine()?.Trim();
+
+                    Console.Write("Porta do host (ex: 8080): ");
+                    hostPort = Console.ReadLine()?.Trim();
+                }
+                else
+                {
+                    Console.WriteLine("Executando em modo CI/CD.");
+                    if (debug)
+                    {
+                        Console.WriteLine($"PORTAINER_URL: {MaskSensitiveData(portainerUrl)}");
+                        Console.WriteLine($"USERNAME: {MaskSensitiveData(username)}");
+                        Console.WriteLine(
+                            $"PASSWORD: {(password != null ? "definido" : "não definido")}"
+                        );
+                        Console.WriteLine($"DOCKER_USERNAME: {MaskSensitiveData(dockerUsername)}");
+                        Console.WriteLine($"CONTAINER_NAME: {containerName}");
+                        Console.WriteLine($"HOST_PORT: {hostPort}");
+                    }
+                }
+
+                if (string.IsNullOrEmpty(portainerUrl))
+                {
+                    Console.WriteLine("Erro: URL do Portainer não fornecida.");
+                    Environment.Exit(1);
+                }
+
+                if (string.IsNullOrEmpty(username))
+                {
+                    Console.WriteLine("Erro: Nome de usuário do Portainer não fornecido.");
+                    Environment.Exit(1);
+                }
+
+                if (string.IsNullOrEmpty(password))
+                {
+                    Console.WriteLine("Erro: Senha do Portainer não fornecida.");
+                    Environment.Exit(1);
+                }
+
+                if (string.IsNullOrEmpty(dockerUsername))
+                {
+                    Console.WriteLine("Erro: Nome de usuário do Docker Hub não fornecido.");
+                    Environment.Exit(1);
+                }
+
+                if (string.IsNullOrEmpty(containerName))
+                {
+                    Console.WriteLine("Erro: Nome do container não fornecido.");
+                    Environment.Exit(1);
+                }
+
+                if (string.IsNullOrEmpty(hostPort))
+                {
+                    Console.WriteLine("Erro: Porta do host não fornecida.");
+                    Environment.Exit(1);
+                }
+
+                // Garante que a URL do Portainer termina com uma barra
+                if (!portainerUrl.EndsWith("/"))
+                {
+                    portainerUrl += "/";
+                }
+
+                // Remove "api/" ou "api/v1/" ou "api/v2/" se já estiver incluído no URL
+                if (portainerUrl.EndsWith("api/"))
+                {
+                    portainerUrl = portainerUrl.Substring(0, portainerUrl.Length - 4);
+                }
+                else if (portainerUrl.EndsWith("api/v1/") || portainerUrl.EndsWith("api/v2/"))
+                {
+                    portainerUrl = portainerUrl.Substring(0, portainerUrl.Length - 7);
+                }
+
+                Console.WriteLine("Iniciando processo de deploy no Portainer...");
+
+                string imageName = $"{dockerUsername}/{containerName}:latest";
+
+                // Configura o cliente HTTP
+                client.DefaultRequestHeaders.Accept.Clear();
+                client.DefaultRequestHeaders.Accept.Add(
+                    new MediaTypeWithQualityHeaderValue("application/json")
                 );
-                Console.WriteLine("Deploy concluído com sucesso!");
+
+                await AutenticarPortainer(portainerUrl, username, password);
+
+                int endpointId = await ObterEndpointId(portainerUrl);
+                if (endpointId == -1)
+                {
+                    Console.WriteLine(
+                        "Erro: Não foi possível obter o ID do endpoint do Portainer."
+                    );
+                    Environment.Exit(1);
+                }
+
+                await DeployContainer(portainerUrl, endpointId, imageName, containerName, hostPort);
+
+                Console.WriteLine("Deploy realizado com sucesso!");
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Erro durante o deploy: {ex.Message}");
-                Console.WriteLine(ex.StackTrace);
+                if (debug)
+                {
+                    Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                    if (ex.InnerException != null)
+                    {
+                        Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
+                    }
+                }
                 Environment.Exit(1);
-            }
-
-            if (interactive)
-            {
-                Console.WriteLine("Pressione qualquer tecla para sair...");
-                Console.ReadKey();
             }
         }
 
-        static async Task DeployContainer(
-            string portainerUrl,
+        private static string MaskSensitiveData(string? data)
+        {
+            if (string.IsNullOrEmpty(data))
+                return "não definido";
+
+            if (data.Length <= 4)
+                return "***";
+
+            return data.Substring(0, 3) + "..." + data.Substring(data.Length - 2, 2);
+        }
+
+        private static async Task AutenticarPortainer(
+            string baseUrl,
             string username,
-            string password,
-            string dockerImage,
+            string password
+        )
+        {
+            Console.WriteLine("Autenticando no Portainer...");
+
+            var loginUrl = $"{baseUrl}api/auth";
+            if (debug)
+                Console.WriteLine($"URL de autenticação: {loginUrl}");
+
+            var loginData = new { Username = username, Password = password };
+
+            var response = await client.PostAsJsonAsync(loginUrl, loginData);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"Falha na autenticação. Status: {response.StatusCode}");
+                Console.WriteLine($"Resposta: {errorContent}");
+                throw new Exception($"Falha na autenticação do Portainer: {response.StatusCode}");
+            }
+
+            var authResponse = await response.Content.ReadFromJsonAsync<AuthResponse>();
+            authToken = authResponse?.jwt;
+
+            if (string.IsNullOrEmpty(authToken))
+            {
+                throw new Exception("Token de autenticação não recebido");
+            }
+
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+                "Bearer",
+                authToken
+            );
+            Console.WriteLine("Autenticação bem-sucedida!");
+        }
+
+        private static async Task<int> ObterEndpointId(string baseUrl)
+        {
+            Console.WriteLine("Obtendo endpoints do Portainer...");
+
+            var endpointsUrl = $"{baseUrl}api/endpoints";
+            if (debug)
+                Console.WriteLine($"URL dos endpoints: {endpointsUrl}");
+
+            // Tenta primeiro a API v2
+            var response = await client.GetAsync(endpointsUrl);
+            if (!response.IsSuccessStatusCode)
+            {
+                Console.WriteLine($"Falha ao obter endpoints. Status: {response.StatusCode}");
+                var errorContent = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"Resposta: {errorContent}");
+                throw new Exception(
+                    $"Não foi possível obter endpoints do Portainer: {response.StatusCode}"
+                );
+            }
+
+            var responseBody = await response.Content.ReadAsStringAsync();
+            if (debug)
+                Console.WriteLine($"Resposta de endpoints: {responseBody}");
+
+            // Tenta desserializar como um array de endpoints primeiro (API comum)
+            Endpoint[]? endpoints = null;
+            try
+            {
+                endpoints = JsonSerializer.Deserialize<Endpoint[]>(responseBody, jsonOptions);
+                if (debug)
+                    Console.WriteLine("Conseguiu desserializar como array de endpoints");
+            }
+            catch (JsonException)
+            {
+                if (debug)
+                    Console.WriteLine("Falha ao desserializar como array, tentando outro formato");
+            }
+
+            // Se não conseguiu como array, tenta como objeto EndpointResponse
+            if (endpoints == null || endpoints.Length == 0)
+            {
+                try
+                {
+                    var endpointResponse = JsonSerializer.Deserialize<EndpointResponse>(
+                        responseBody,
+                        jsonOptions
+                    );
+                    endpoints = endpointResponse?.endpoints?.ToArray();
+                    if (debug)
+                        Console.WriteLine("Conseguiu desserializar como EndpointResponse");
+                }
+                catch (JsonException ex)
+                {
+                    Console.WriteLine($"Erro ao desserializar resposta de endpoints: {ex.Message}");
+                    if (debug)
+                        Console.WriteLine($"Conteúdo que falhou: {responseBody}");
+                    throw;
+                }
+            }
+
+            if (endpoints == null || endpoints.Length == 0)
+            {
+                Console.WriteLine("Nenhum endpoint encontrado no Portainer.");
+                return -1;
+            }
+
+            Console.WriteLine($"Endpoints encontrados: {endpoints.Length}");
+            foreach (var endpoint in endpoints)
+            {
+                Console.WriteLine(
+                    $"Endpoint ID: {endpoint.Id}, Nome: {endpoint.Name}, URL: {endpoint.URL}"
+                );
+            }
+
+            // Usa o primeiro endpoint por padrão
+            int endpointId = endpoints[0].Id;
+            Console.WriteLine($"Usando endpoint: {endpoints[0].Name} (ID: {endpointId})");
+            return endpointId;
+        }
+
+        private static async Task DeployContainer(
+            string baseUrl,
+            int endpointId,
+            string imageName,
             string containerName,
             string hostPort
         )
         {
-            using var client = new HttpClient();
-            client.BaseAddress = new Uri(portainerUrl);
+            Console.WriteLine($"Iniciando deploy do container {containerName}...");
 
-            Console.WriteLine("Autenticando no Portainer...");
-            var authData = new { Username = username, Password = password };
-            var authJson = JsonSerializer.Serialize(authData);
-            var authContent = new StringContent(authJson, Encoding.UTF8, "application/json");
-            var response = await client.PostAsync("/api/auth", authContent);
+            // 1. Verificar se o container existe e removê-lo
+            await RemoverContainerSeExistir(baseUrl, endpointId, containerName);
+
+            // 2. Puxar a nova imagem
+            await PuxarImagem(baseUrl, endpointId, imageName);
+
+            // 3. Criar e iniciar o novo container
+            await CriarEIniciarContainer(baseUrl, endpointId, imageName, containerName, hostPort);
+        }
+
+        private static async Task RemoverContainerSeExistir(
+            string baseUrl,
+            int endpointId,
+            string containerName
+        )
+        {
+            Console.WriteLine("Verificando se o container já existe...");
+
+            var containersUrl =
+                $"{baseUrl}api/endpoints/{endpointId}/docker/containers/json?all=true";
+            if (debug)
+                Console.WriteLine($"URL de consulta de containers: {containersUrl}");
+
+            var response = await client.GetAsync(containersUrl);
 
             if (!response.IsSuccessStatusCode)
             {
-                throw new Exception($"Falha na autenticação: {response.StatusCode}");
-            }
-
-            var authResponseContent = await response.Content.ReadAsStringAsync();
-            var authResponse = JsonSerializer.Deserialize<AuthResponse>(
-                authResponseContent,
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
-            );
-
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
-                "Bearer",
-                authResponse!.Jwt
-            );
-
-            Console.WriteLine("Procurando endpoints disponíveis...");
-            var endpointsResponse = await client.GetAsync("/api/endpoints");
-            var endpointsContent = await endpointsResponse.Content.ReadAsStringAsync();
-            var endpoints = JsonSerializer.Deserialize<List<Endpoint>>(
-                endpointsContent,
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
-            );
-
-            if (endpoints == null || !endpoints.Any())
-            {
-                throw new Exception("Nenhum endpoint encontrado no Portainer");
-            }
-
-            // Usar o primeiro endpoint por padrão, ou permitir a seleção
-            var endpoint = endpoints.First();
-            Console.WriteLine($"Usando endpoint: {endpoint.Name} (ID: {endpoint.Id})");
-
-            Console.WriteLine("Procurando containers existentes...");
-            var containersResponse = await client.GetAsync(
-                $"/api/endpoints/{endpoint.Id}/docker/containers/json?all=true"
-            );
-            var containersContent = await containersResponse.Content.ReadAsStringAsync();
-
-            Console.WriteLine("Analisando resposta de containers...");
-            var containers = JsonSerializer.Deserialize<List<Container>>(
-                containersContent,
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
-            );
-
-            var existingContainer = containers?.FirstOrDefault(c =>
-                c.Names != null && c.Names.Any(n => n.Contains(containerName))
-            );
-
-            if (existingContainer != null)
-            {
-                Console.WriteLine($"Removendo container existente: {existingContainer.Id}");
-                await client.DeleteAsync(
-                    $"/api/endpoints/{endpoint.Id}/docker/containers/{existingContainer.Id}?force=true"
+                var errorContent = await response.Content.ReadAsStringAsync();
+                Console.WriteLine(
+                    $"Falha ao obter lista de containers. Status: {response.StatusCode}, Resposta: {errorContent}"
+                );
+                throw new Exception(
+                    $"Não foi possível obter a lista de containers: {response.StatusCode}"
                 );
             }
 
+            var containers = await response.Content.ReadFromJsonAsync<Container[]>();
+
+            var container = containers?.FirstOrDefault(c =>
+                c.Names?.Any(n => n.Contains(containerName, StringComparison.OrdinalIgnoreCase))
+                == true
+            );
+
+            if (container != null)
+            {
+                Console.WriteLine($"Container existente encontrado. ID: {container.Id}");
+
+                // Parar o container
+                Console.WriteLine("Parando o container...");
+                var stopUrl =
+                    $"{baseUrl}api/endpoints/{endpointId}/docker/containers/{container.Id}/stop";
+                var stopResponse = await client.PostAsync(stopUrl, null);
+
+                if (
+                    !stopResponse.IsSuccessStatusCode
+                    && stopResponse.StatusCode != System.Net.HttpStatusCode.NotModified
+                )
+                {
+                    var errorContent = await stopResponse.Content.ReadAsStringAsync();
+                    Console.WriteLine(
+                        $"Aviso: Falha ao parar o container. Status: {stopResponse.StatusCode}, Resposta: {errorContent}"
+                    );
+                    // Continua mesmo se falhar para tentar remover de qualquer forma
+                }
+
+                // Remover o container
+                Console.WriteLine("Removendo o container...");
+                var removeUrl =
+                    $"{baseUrl}api/endpoints/{endpointId}/docker/containers/{container.Id}?force=true";
+                var removeResponse = await client.DeleteAsync(removeUrl);
+
+                if (!removeResponse.IsSuccessStatusCode)
+                {
+                    var errorContent = await removeResponse.Content.ReadAsStringAsync();
+                    Console.WriteLine(
+                        $"Falha ao remover o container. Status: {removeResponse.StatusCode}, Resposta: {errorContent}"
+                    );
+                    throw new Exception("Não foi possível remover o container existente");
+                }
+
+                Console.WriteLine("Container removido com sucesso.");
+            }
+            else
+            {
+                Console.WriteLine("Container não encontrado. Prosseguindo com a criação.");
+            }
+        }
+
+        private static async Task PuxarImagem(string baseUrl, int endpointId, string imageName)
+        {
+            Console.WriteLine($"Puxando imagem {imageName}...");
+
+            var pullUrl =
+                $"{baseUrl}api/endpoints/{endpointId}/docker/images/create?fromImage={imageName}";
+            if (debug)
+                Console.WriteLine($"URL para pull da imagem: {pullUrl}");
+
+            var response = await client.PostAsync(pullUrl, null);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                Console.WriteLine(
+                    $"Falha ao puxar a imagem. Status: {response.StatusCode}, Resposta: {errorContent}"
+                );
+                throw new Exception($"Não foi possível puxar a imagem {imageName}");
+            }
+
+            Console.WriteLine("Imagem puxada com sucesso.");
+        }
+
+        private static async Task CriarEIniciarContainer(
+            string baseUrl,
+            int endpointId,
+            string imageName,
+            string containerName,
+            string hostPort
+        )
+        {
             Console.WriteLine("Criando novo container...");
 
-            // Definição da configuração do container
-            var portBindings = new Dictionary<string, object>();
-            portBindings.Add("80/tcp", new[] { new { HostPort = hostPort } });
+            var createUrl =
+                $"{baseUrl}api/endpoints/{endpointId}/docker/containers/create?name={containerName}";
+            if (debug)
+                Console.WriteLine($"URL para criação do container: {createUrl}");
 
-            var createData = new Dictionary<string, object>
+            var containerConfig = new
             {
-                ["name"] = containerName,
-                ["Image"] = dockerImage,
-                ["ExposedPorts"] = new Dictionary<string, object> { { "80/tcp", new object() } },
-                ["HostConfig"] = new Dictionary<string, object>
+                Image = imageName,
+                HostConfig = new
                 {
-                    ["PortBindings"] = new Dictionary<string, object[]>
+                    PortBindings = new Dictionary<string, object>
                     {
-                        ["80/tcp"] = new object[]
-                        {
-                            new Dictionary<string, string> { ["HostPort"] = hostPort },
-                        },
+                        { "80/tcp", new[] { new { HostPort = hostPort } } },
                     },
-                    ["RestartPolicy"] = new Dictionary<string, string> { ["Name"] = "always" },
+                    RestartPolicy = new { Name = "always" },
                 },
-                ["Env"] = new[]
-                {
-                    "ASPNETCORE_ENVIRONMENT=Production",
-                    "ASPNETCORE_URLS=http://+:80",
-                },
+                ExposedPorts = new Dictionary<string, object> { { "80/tcp", new { } } },
             };
 
-            var createJson = JsonSerializer.Serialize(createData);
-            var createContent = new StringContent(createJson, Encoding.UTF8, "application/json");
-            var createResponse = await client.PostAsync(
-                $"/api/endpoints/{endpoint.Id}/docker/containers/create?name={containerName}",
-                createContent
-            );
-
-            if (!createResponse.IsSuccessStatusCode)
-            {
-                var error = await createResponse.Content.ReadAsStringAsync();
-                throw new Exception(
-                    $"Falha na criação do container: {createResponse.StatusCode}\n{error}"
+            if (debug)
+                Console.WriteLine(
+                    $"Configuração do container: {JsonSerializer.Serialize(containerConfig, jsonOptions)}"
                 );
+
+            var jsonContent = JsonSerializer.Serialize(containerConfig);
+            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+            var response = await client.PostAsync(createUrl, content);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                Console.WriteLine(
+                    $"Falha ao criar o container. Status: {response.StatusCode}, Resposta: {errorContent}"
+                );
+                throw new Exception("Não foi possível criar o container");
             }
 
-            var createResponseContent = await createResponse.Content.ReadAsStringAsync();
-            var createResult = JsonSerializer.Deserialize<CreateContainerResponse>(
-                createResponseContent,
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
-            );
+            var createResponse =
+                await response.Content.ReadFromJsonAsync<CreateContainerResponse>();
+            string containerId =
+                createResponse?.Id ?? throw new Exception("ID do container não recebido");
 
-            Console.WriteLine($"Iniciando container: {createResult!.Id}");
-            var startResponse = await client.PostAsync(
-                $"/api/endpoints/{endpoint.Id}/docker/containers/{createResult.Id}/start",
-                null
-            );
+            Console.WriteLine($"Container criado com ID: {containerId}");
+
+            // Iniciar o container
+            Console.WriteLine("Iniciando o container...");
+            var startUrl =
+                $"{baseUrl}api/endpoints/{endpointId}/docker/containers/{containerId}/start";
+
+            var startResponse = await client.PostAsync(startUrl, null);
 
             if (!startResponse.IsSuccessStatusCode)
             {
-                var error = await startResponse.Content.ReadAsStringAsync();
-                throw new Exception(
-                    $"Falha ao iniciar o container: {startResponse.StatusCode}\n{error}"
+                var errorContent = await startResponse.Content.ReadAsStringAsync();
+                Console.WriteLine(
+                    $"Falha ao iniciar o container. Status: {startResponse.StatusCode}, Resposta: {errorContent}"
                 );
+                throw new Exception("Não foi possível iniciar o container");
             }
+
+            Console.WriteLine("Container iniciado com sucesso!");
         }
-    }
 
-    class AuthResponse
-    {
-        public string Jwt { get; set; } = string.Empty;
-    }
+        // Classes para desserialização
+        class AuthResponse
+        {
+            public string? jwt { get; set; }
+        }
 
-    class Endpoint
-    {
-        public int Id { get; set; }
-        public string Name { get; set; } = string.Empty;
-    }
+        class EndpointResponse
+        {
+            public List<Endpoint>? endpoints { get; set; }
+        }
 
-    class Container
-    {
-        public string Id { get; set; } = string.Empty;
-        public string[]? Names { get; set; }
-    }
+        class Endpoint
+        {
+            public int Id { get; set; }
+            public string? Name { get; set; }
+            public string? URL { get; set; }
+            public int Status { get; set; }
+            public string? Type { get; set; }
+        }
 
-    class CreateContainerResponse
-    {
-        public string Id { get; set; } = string.Empty;
+        class Container
+        {
+            public string? Id { get; set; }
+            public string? Image { get; set; }
+            public string[]? Names { get; set; }
+            public string? State { get; set; }
+        }
+
+        class CreateContainerResponse
+        {
+            public string? Id { get; set; }
+            public string[]? Warnings { get; set; }
+        }
     }
 }
