@@ -25,8 +25,8 @@ jobs:
       - name: Login to Docker Hub
         uses: docker/login-action@v2
         with:
-          username: ${{ secrets.DOCKER_HUB_USERNAME }}
-          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v4
@@ -34,7 +34,7 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/auz-core-api:latest
+          tags: ${{ secrets.DOCKER_USERNAME }}/auz-core-api:latest
 
       - name: Restore dependencies
         run: |
@@ -46,9 +46,9 @@ jobs:
         run: dotnet run
         env:
           PORTAINER_URL: ${{ secrets.PORTAINER_URL }}
-          USERNAME: ${{ secrets.PORTAINER_USERNAME }}
-          PASSWORD: ${{ secrets.PORTAINER_PASSWORD }}
-          DOCKER_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+          USERNAME: ${{ secrets.USERNAME }}
+          PASSWORD: ${{ secrets.PASSWORD }}
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           CONTAINER_NAME: "auz-core-api"
           HOST_PORT: "8080"
           DEBUG: "true"
