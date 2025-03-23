@@ -1,4 +1,5 @@
 ﻿using Domain.Entidades;
+using Infra.RawQueryResult;
 
 namespace Infra.Repositories.Usuarios
 {
@@ -7,5 +8,6 @@ namespace Infra.Repositories.Usuarios
         List<Usuario> ListarUsuarios();
         void Inserir(Usuario usuario);
         Usuario ObterPorEmail(string email);
+        StringRawQuery ObterNome(Guid codigoUsuario);
     }
 }

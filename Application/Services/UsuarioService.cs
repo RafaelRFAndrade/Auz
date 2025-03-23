@@ -1,8 +1,11 @@
 ﻿using Application.Interfaces;
 using Application.Messaging.Exception;
 using Application.Messaging.Request.Usuario;
+using Application.Messaging.Response.Usuario;
 using Domain.Entidades;
 using Domain.Enums;
+using Infra.Repositories.Agendamentos;
+using Infra.Repositories.Atendimentos;
 using Infra.Repositories.Usuarios;
 using Microsoft.AspNetCore.Identity;
 
@@ -12,11 +15,18 @@ namespace Application.Services
     {
         private readonly IUsuarioRepository _usuarioRepository;
         private readonly IAutenticacaoService _autenticacaoService;
+        private readonly IAgendamentoRepository _agendamentoRepository;
+        private readonly IAtendimentoRepository _atendimentoRepository;
 
-        public UsuarioService(IUsuarioRepository usuarioRepository, IAutenticacaoService autenticacaoService) 
+        public UsuarioService(IUsuarioRepository usuarioRepository,
+            IAutenticacaoService autenticacaoService,
+            IAtendimentoRepository atendimentoRepository,
+            IAgendamentoRepository agendamentoRepository) 
         {
             _usuarioRepository = usuarioRepository;
             _autenticacaoService = autenticacaoService;
+            _agendamentoRepository = agendamentoRepository;
+            _atendimentoRepository = atendimentoRepository;
         }
 
         public void Cadastrar(CadastroUsuarioRequest request)
@@ -54,6 +64,22 @@ namespace Application.Services
                 throw new AuzException("Senha inválida.");
 
             return usuario;
+        }
+
+        public ValoresHomeResponse CarregarRelacionamentos(Guid codigoUsuario)
+        {
+            var nomeUsuario = _usuarioRepository.ObterNome(codigoUsuario);
+            var atendimentos = _atendimentoRepository.ObterAtendimentosPorCodigoUsuario(codigoUsuario);
+
+            var agendamentos = _agendamentoRepository.ObterAgendamentosPorCodigoUsuario(codigoUsuario);
+
+            return new ValoresHomeResponse
+            {
+                NomeUsuario = nomeUsuario.String,
+                Agendamentos = agendamentos,
+                Atendimentos = atendimentos,
+                Sucesso = true
+            };
         }
     }
 }
