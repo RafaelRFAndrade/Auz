@@ -240,6 +240,54 @@ namespace PortainerDeploy
             if (debug)
                 Console.WriteLine($"Resposta de endpoints: {responseBody}");
 
+            // Verificar se a resposta é um array vazio
+            if (responseBody == "[]")
+            {
+                Console.WriteLine("Array de endpoints vazio retornado pelo Portainer.");
+                Console.WriteLine("Tentando usar o endpoint padrão (ID: 1)...");
+
+                // Verificar se o endpoint 1 existe
+                var endpointCheckUrl = $"{baseUrl}api/endpoints/1";
+                if (debug)
+                    Console.WriteLine($"Verificando endpoint 1: {endpointCheckUrl}");
+
+                var endpointCheckResponse = await client.GetAsync(endpointCheckUrl);
+                if (endpointCheckResponse.IsSuccessStatusCode)
+                {
+                    Console.WriteLine("Endpoint 1 encontrado e será usado para o deploy.");
+                    return 1;
+                }
+                else
+                {
+                    Console.WriteLine(
+                        $"Endpoint 1 não disponível. Status: {endpointCheckResponse.StatusCode}"
+                    );
+
+                    // Como último recurso, tentar listar todos os containers sem especificar endpoint
+                    var containersCheckUrl = $"{baseUrl}api/docker/containers/json?all=true";
+                    if (debug)
+                        Console.WriteLine(
+                            $"Verificando acesso direto a containers: {containersCheckUrl}"
+                        );
+
+                    var containersCheckResponse = await client.GetAsync(containersCheckUrl);
+                    if (containersCheckResponse.IsSuccessStatusCode)
+                    {
+                        Console.WriteLine(
+                            "Endpoint não é necessário nesta versão do Portainer. Usando ID 0."
+                        );
+                        return 0;
+                    }
+                    else
+                    {
+                        Console.WriteLine(
+                            "Não foi possível encontrar um endpoint válido no Portainer."
+                        );
+                        return -1;
+                    }
+                }
+            }
+
             // Tenta desserializar como um array de endpoints primeiro (API comum)
             Endpoint[]? endpoints = null;
             try
@@ -272,14 +320,18 @@ namespace PortainerDeploy
                     Console.WriteLine($"Erro ao desserializar resposta de endpoints: {ex.Message}");
                     if (debug)
                         Console.WriteLine($"Conteúdo que falhou: {responseBody}");
-                    throw;
+
+                    // Tentar usar endpoint padrão como último recurso
+                    Console.WriteLine("Tentando usar o endpoint padrão (ID: 1)...");
+                    return 1;
                 }
             }
 
             if (endpoints == null || endpoints.Length == 0)
             {
                 Console.WriteLine("Nenhum endpoint encontrado no Portainer.");
-                return -1;
+                Console.WriteLine("Tentando usar o endpoint padrão (ID: 1)...");
+                return 1;
             }
 
             Console.WriteLine($"Endpoints encontrados: {endpoints.Length}");
@@ -306,6 +358,17 @@ namespace PortainerDeploy
         {
             Console.WriteLine($"Iniciando deploy do container {containerName}...");
 
+            // Constrói o caminho base para as chamadas Docker, considerando se o endpoint é necessário
+            string dockerBasePath;
+            if (endpointId > 0)
+            {
+                dockerBasePath = $"{baseUrl}api/endpoints/{endpointId}/docker";
+            }
+            else
+            {
+                dockerBasePath = $"{baseUrl}api/docker";
+            }
+
             // 1. Verificar se o container existe e removê-lo
             await RemoverContainerSeExistir(baseUrl, endpointId, containerName);
 
@@ -324,8 +387,17 @@ namespace PortainerDeploy
         {
             Console.WriteLine("Verificando se o container já existe...");
 
-            var containersUrl =
-                $"{baseUrl}api/endpoints/{endpointId}/docker/containers/json?all=true";
+            string containersUrl;
+            if (endpointId > 0)
+            {
+                containersUrl =
+                    $"{baseUrl}api/endpoints/{endpointId}/docker/containers/json?all=true";
+            }
+            else
+            {
+                containersUrl = $"{baseUrl}api/docker/containers/json?all=true";
+            }
+
             if (debug)
                 Console.WriteLine($"URL de consulta de containers: {containersUrl}");
 
@@ -355,8 +427,17 @@ namespace PortainerDeploy
 
                 // Parar o container
                 Console.WriteLine("Parando o container...");
-                var stopUrl =
-                    $"{baseUrl}api/endpoints/{endpointId}/docker/containers/{container.Id}/stop";
+                string stopUrl;
+                if (endpointId > 0)
+                {
+                    stopUrl =
+                        $"{baseUrl}api/endpoints/{endpointId}/docker/containers/{container.Id}/stop";
+                }
+                else
+                {
+                    stopUrl = $"{baseUrl}api/docker/containers/{container.Id}/stop";
+                }
+
                 var stopResponse = await client.PostAsync(stopUrl, null);
 
                 if (
@@ -373,8 +454,17 @@ namespace PortainerDeploy
 
                 // Remover o container
                 Console.WriteLine("Removendo o container...");
-                var removeUrl =
-                    $"{baseUrl}api/endpoints/{endpointId}/docker/containers/{container.Id}?force=true";
+                string removeUrl;
+                if (endpointId > 0)
+                {
+                    removeUrl =
+                        $"{baseUrl}api/endpoints/{endpointId}/docker/containers/{container.Id}?force=true";
+                }
+                else
+                {
+                    removeUrl = $"{baseUrl}api/docker/containers/{container.Id}?force=true";
+                }
+
                 var removeResponse = await client.DeleteAsync(removeUrl);
 
                 if (!removeResponse.IsSuccessStatusCode)
@@ -398,8 +488,17 @@ namespace PortainerDeploy
         {
             Console.WriteLine($"Puxando imagem {imageName}...");
 
-            var pullUrl =
-                $"{baseUrl}api/endpoints/{endpointId}/docker/images/create?fromImage={imageName}";
+            string pullUrl;
+            if (endpointId > 0)
+            {
+                pullUrl =
+                    $"{baseUrl}api/endpoints/{endpointId}/docker/images/create?fromImage={imageName}";
+            }
+            else
+            {
+                pullUrl = $"{baseUrl}api/docker/images/create?fromImage={imageName}";
+            }
+
             if (debug)
                 Console.WriteLine($"URL para pull da imagem: {pullUrl}");
 
@@ -427,8 +526,17 @@ namespace PortainerDeploy
         {
             Console.WriteLine("Criando novo container...");
 
-            var createUrl =
-                $"{baseUrl}api/endpoints/{endpointId}/docker/containers/create?name={containerName}";
+            string createUrl;
+            if (endpointId > 0)
+            {
+                createUrl =
+                    $"{baseUrl}api/endpoints/{endpointId}/docker/containers/create?name={containerName}";
+            }
+            else
+            {
+                createUrl = $"{baseUrl}api/docker/containers/create?name={containerName}";
+            }
+
             if (debug)
                 Console.WriteLine($"URL para criação do container: {createUrl}");
 
@@ -474,8 +582,16 @@ namespace PortainerDeploy
 
             // Iniciar o container
             Console.WriteLine("Iniciando o container...");
-            var startUrl =
-                $"{baseUrl}api/endpoints/{endpointId}/docker/containers/{containerId}/start";
+            string startUrl;
+            if (endpointId > 0)
+            {
+                startUrl =
+                    $"{baseUrl}api/endpoints/{endpointId}/docker/containers/{containerId}/start";
+            }
+            else
+            {
+                startUrl = $"{baseUrl}api/docker/containers/{containerId}/start";
+            }
 
             var startResponse = await client.PostAsync(startUrl, null);
 
