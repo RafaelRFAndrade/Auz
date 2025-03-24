@@ -565,13 +565,13 @@ namespace PortainerDeploy
                         {
                             if (
                                 match.Success
-                                && int.TryParse(match.Groups[1].Value, out int endpointId)
+                                && int.TryParse(match.Groups[1].Value, out int matchedEndpointId)
                             )
                             {
                                 Console.WriteLine(
-                                    $"Endpoint ID {endpointId} encontrado na interface web."
+                                    $"Endpoint ID {matchedEndpointId} encontrado na interface web."
                                 );
-                                return endpointId;
+                                return matchedEndpointId;
                             }
                         }
 
