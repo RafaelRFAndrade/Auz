@@ -23,6 +23,7 @@ namespace PortainerDeploy
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         };
         private static string? authToken;
+        private static string? csrfToken;
         private static bool usandoSessao = false;
         private static bool debug = false;
 
@@ -204,7 +205,6 @@ namespace PortainerDeploy
 
             // Verificar se precisamos de token CSRF
             bool usaCsrf = false;
-            string? csrfToken = null;
 
             // Tentar obter o token CSRF primeiro
             try
@@ -533,7 +533,10 @@ namespace PortainerDeploy
                 var testEndpoint3Url = $"{baseUrl}api/endpoints/3/docker/containers/json?all=true";
                 Console.WriteLine($"Testando diretamente o endpoint 3: {testEndpoint3Url}");
                 
-                var testResponse = await client.GetAsync(testEndpoint3Url);
+                // Usar o método auxiliar para testar o endpoint 3 com token CSRF
+                var requisicao = CriarRequisicaoComCsrf(HttpMethod.Get, testEndpoint3Url);
+                var testResponse = await client.SendAsync(requisicao);
+                
                 if (testResponse.IsSuccessStatusCode)
                 {
                     Console.WriteLine("Endpoint 3 está disponível e funcionando! Usando-o diretamente.");
@@ -563,7 +566,9 @@ namespace PortainerDeploy
                     if (debug)
                         Console.WriteLine($"Acessando página inicial: {homeUrl}");
 
-                    var homeResponse = await client.GetAsync(homeUrl);
+                    var homeRequisicao = CriarRequisicaoComCsrf(HttpMethod.Get, homeUrl);
+                    var homeResponse = await client.SendAsync(homeRequisicao);
+                    
                     if (homeResponse.IsSuccessStatusCode)
                     {
                         var homeContent = await homeResponse.Content.ReadAsStringAsync();
@@ -633,7 +638,9 @@ namespace PortainerDeploy
                 Console.WriteLine($"URL dos endpoints: {endpointsUrl}");
 
             // Tenta primeiro a API v2
-            var response = await client.GetAsync(endpointsUrl);
+            var endpointsRequisicao = CriarRequisicaoComCsrf(HttpMethod.Get, endpointsUrl);
+            var response = await client.SendAsync(endpointsRequisicao);
+            
             if (!response.IsSuccessStatusCode)
             {
                 Console.WriteLine($"Falha ao obter endpoints. Status: {response.StatusCode}");
@@ -684,7 +691,9 @@ namespace PortainerDeploy
 
                     try
                     {
-                        var containerCheckResponse = await client.GetAsync(url);
+                        var containerCheckRequisicao = CriarRequisicaoComCsrf(HttpMethod.Get, url);
+                        var containerCheckResponse = await client.SendAsync(containerCheckRequisicao);
+                        
                         if (containerCheckResponse.IsSuccessStatusCode)
                         {
                             // Detectar qual padrão funcionou
@@ -736,7 +745,9 @@ namespace PortainerDeploy
 
                 try
                 {
-                    var statusResponse = await client.GetAsync(statusUrl);
+                    var statusRequisicao = CriarRequisicaoComCsrf(HttpMethod.Get, statusUrl);
+                    var statusResponse = await client.SendAsync(statusRequisicao);
+                    
                     if (statusResponse.IsSuccessStatusCode)
                     {
                         var statusContent = await statusResponse.Content.ReadAsStringAsync();
@@ -904,7 +915,9 @@ namespace PortainerDeploy
             if (debug)
                 Console.WriteLine($"URL de consulta de containers: {containersUrl}");
 
-            var response = await client.GetAsync(containersUrl);
+            // Usar o método auxiliar para a consulta de containers com token CSRF
+            var consultaRequisicao = CriarRequisicaoComCsrf(HttpMethod.Get, containersUrl);
+            var response = await client.SendAsync(consultaRequisicao);
 
             if (!response.IsSuccessStatusCode)
             {
@@ -958,7 +971,9 @@ namespace PortainerDeploy
                     stopUrl = $"{baseUrl}api/docker/containers/{container.Id}/stop";
                 }
 
-                var stopResponse = await client.PostAsync(stopUrl, null);
+                // Usar o método auxiliar para parar o container com token CSRF
+                var stopRequisicao = CriarRequisicaoComCsrf(HttpMethod.Post, stopUrl);
+                var stopResponse = await client.SendAsync(stopRequisicao);
 
                 if (
                     !stopResponse.IsSuccessStatusCode
@@ -993,7 +1008,9 @@ namespace PortainerDeploy
                     removeUrl = $"{baseUrl}api/docker/containers/{container.Id}?force=true";
                 }
 
-                var removeResponse = await client.DeleteAsync(removeUrl);
+                // Usar o método auxiliar para remover o container com token CSRF
+                var removeRequisicao = CriarRequisicaoComCsrf(HttpMethod.Delete, removeUrl);
+                var removeResponse = await client.SendAsync(removeRequisicao);
 
                 if (!removeResponse.IsSuccessStatusCode)
                 {
@@ -1046,7 +1063,9 @@ namespace PortainerDeploy
 
             try
             {
-                var response = await client.PostAsync(pullUrl, null);
+                // Usar o método auxiliar para fazer o pull da imagem com token CSRF
+                var pullRequisicao = CriarRequisicaoComCsrf(HttpMethod.Post, pullUrl);
+                var response = await client.SendAsync(pullRequisicao);
 
                 if (!response.IsSuccessStatusCode)
                 {
@@ -1128,7 +1147,9 @@ namespace PortainerDeploy
             var jsonContent = JsonSerializer.Serialize(containerConfig);
             var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
-            var response = await client.PostAsync(createUrl, content);
+            // Usar o método auxiliar para criar a requisição com o token CSRF
+            var requisicao = CriarRequisicaoComCsrf(HttpMethod.Post, createUrl, content);
+            var response = await client.SendAsync(requisicao);
 
             if (!response.IsSuccessStatusCode)
             {
@@ -1167,7 +1188,9 @@ namespace PortainerDeploy
                 startUrl = $"{baseUrl}api/docker/containers/{containerId}/start";
             }
 
-            var startResponse = await client.PostAsync(startUrl, null);
+            // Usar o método auxiliar para iniciar o container com token CSRF
+            var startRequisicao = CriarRequisicaoComCsrf(HttpMethod.Post, startUrl);
+            var startResponse = await client.SendAsync(startRequisicao);
 
             if (!startResponse.IsSuccessStatusCode)
             {
@@ -1179,6 +1202,27 @@ namespace PortainerDeploy
             }
 
             Console.WriteLine("Container iniciado com sucesso!");
+        }
+
+        // Método auxiliar para adicionar o token CSRF a uma requisição HTTP
+        private static HttpRequestMessage CriarRequisicaoComCsrf(HttpMethod metodo, string url, HttpContent? conteudo = null)
+        {
+            var requisicao = new HttpRequestMessage(metodo, url);
+            
+            if (conteudo != null)
+            {
+                requisicao.Content = conteudo;
+            }
+            
+            // Adicionar o token CSRF se estiver disponível
+            if (!string.IsNullOrEmpty(csrfToken))
+            {
+                requisicao.Headers.Add("X-CSRF-Token", csrfToken);
+                if (debug)
+                    Console.WriteLine("Token CSRF adicionado ao cabeçalho da requisição");
+            }
+            
+            return requisicao;
         }
 
         // Classes para desserialização
