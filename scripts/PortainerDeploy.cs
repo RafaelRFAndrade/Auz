@@ -159,9 +159,9 @@ namespace PortainerDeploy
                 if (endpointId == -1)
                 {
                     Console.WriteLine(
-                        "Erro: Não foi possível obter o ID do endpoint do Portainer."
+                        "Aviso: Não foi possível detectar automaticamente o endpoint do Portainer. Tentando usar o endpoint 3."
                     );
-                    Environment.Exit(1);
+                    endpointId = 3;
                 }
 
                 await DeployContainer(portainerUrl, endpointId, imageName, containerName, hostPort);
@@ -527,6 +527,30 @@ namespace PortainerDeploy
         {
             Console.WriteLine("Obtendo endpoints do Portainer...");
 
+            // Tentar diretamente o endpoint 3 que descobrimos manualmente
+            try
+            {
+                var testEndpoint3Url = $"{baseUrl}api/endpoints/3/docker/containers/json?all=true";
+                Console.WriteLine($"Testando diretamente o endpoint 3: {testEndpoint3Url}");
+                
+                var testResponse = await client.GetAsync(testEndpoint3Url);
+                if (testResponse.IsSuccessStatusCode)
+                {
+                    Console.WriteLine("Endpoint 3 está disponível e funcionando! Usando-o diretamente.");
+                    return 3;
+                }
+                else
+                {
+                    if (debug)
+                        Console.WriteLine($"Endpoint 3 não respondeu com sucesso: {testResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                if (debug)
+                    Console.WriteLine($"Erro ao testar endpoint 3: {ex.Message}");
+            }
+
             // Se estamos usando sessão, tentar obter o endpoint da página inicial
             if (usandoSessao)
             {
@@ -648,7 +672,8 @@ namespace PortainerDeploy
                     $"{baseUrl}docker/containers/json?all=true", // Tentar sem o "api/"
                     $"{baseUrl}api/local/docker/containers/json?all=true", // Tentar com endpoint "local"
                     $"{baseUrl}api/endpoints/1/docker/containers/json?all=true", // Tentar com endpoint 1
-                    $"{baseUrl}api/endpoints/2/docker/containers/json?all=true" // Tentar com endpoint 2
+                    $"{baseUrl}api/endpoints/2/docker/containers/json?all=true", // Tentar com endpoint 2
+                    $"{baseUrl}api/endpoints/3/docker/containers/json?all=true" // Tentar com endpoint 3
                 };
 
                 for (int i = 0; i < containerApiUrls.Length; i++)
@@ -672,6 +697,11 @@ namespace PortainerDeploy
                             {
                                 Console.WriteLine("Endpoint 2 disponível para o Docker API.");
                                 return 2; // Endpoint 2
+                            }
+                            else if (url.Contains("/endpoints/3/"))
+                            {
+                                Console.WriteLine("Endpoint 3 disponível para o Docker API.");
+                                return 3; // Endpoint 3
                             }
                             else if (url.Contains("/local/"))
                             {
@@ -730,9 +760,9 @@ namespace PortainerDeploy
 
                 // Última tentativa - forçar usar -1 como "sem endpoint"
                 Console.WriteLine(
-                    "Nenhum endpoint encontrado. Tentando prosseguir sem especificar endpoint (modo compatibilidade)."
+                    "Nenhum endpoint encontrado. Tentando usar o endpoint com ID 3 (encontrado anteriormente nas requisições manuais)."
                 );
-                return -1;
+                return 3; // Usar o endpoint 3 que sabemos que existe
             }
 
             // Tenta desserializar como um array de endpoints primeiro (API comum)
@@ -769,16 +799,16 @@ namespace PortainerDeploy
                         Console.WriteLine($"Conteúdo que falhou: {responseBody}");
 
                     // Tentar usar endpoint padrão como último recurso
-                    Console.WriteLine("Tentando usar o endpoint padrão (ID: 1)...");
-                    return 1;
+                    Console.WriteLine("Tentando usar o endpoint 3...");
+                    return 3;
                 }
             }
 
             if (endpoints == null || endpoints.Length == 0)
             {
                 Console.WriteLine("Nenhum endpoint encontrado no Portainer.");
-                Console.WriteLine("Tentando usar o endpoint padrão (ID: 1)...");
-                return 1;
+                Console.WriteLine("Tentando usar o endpoint 3...");
+                return 3;
             }
 
             Console.WriteLine($"Endpoints encontrados: {endpoints.Length}");
@@ -803,7 +833,7 @@ namespace PortainerDeploy
             string hostPort
         )
         {
-            Console.WriteLine($"Iniciando deploy do container {containerName}...");
+            Console.WriteLine($"Iniciando deploy do container {containerName} usando endpoint ID: {endpointId}...");
 
             string dockerBasePath;
             if (endpointId > 0)
