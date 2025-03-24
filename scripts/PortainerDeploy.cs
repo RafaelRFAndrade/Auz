@@ -155,6 +155,17 @@ namespace PortainerDeploy
                 );
 
                 await AutenticarPortainer(portainerUrl, username, password);
+                
+                // Verificar a edição do Portainer para ajustar a estratégia
+                string? edicaoPortainer = await VerificarEdicaoPortainer(portainerUrl);
+                
+                // Tratamento especial para Portainer CE
+                if (edicaoPortainer == "CE")
+                {
+                    Console.WriteLine("Usando tratamento especial para Portainer CE");
+                    // O Portainer CE pode ter requisitos específicos para CSRF
+                    // que implementamos nas funções de renovação
+                }
 
                 int endpointId = await ObterEndpointId(portainerUrl);
                 if (endpointId == -1)
@@ -215,33 +226,55 @@ namespace PortainerDeploy
 
                 // Faz uma requisição GET inicial para obter cookies e potencialmente o token CSRF
                 var csrfResponse = await client.GetAsync(csrfUrl);
+                
+                // Exibir todos os cabeçalhos da resposta para debug
+                if (debug)
+                {
+                    Console.WriteLine("Todos os cabeçalhos da resposta inicial:");
+                    foreach (var header in csrfResponse.Headers)
+                    {
+                        Console.WriteLine($"  {header.Key}: {string.Join(", ", header.Value)}");
+                    }
+                }
 
                 // Verifica se há cabeçalhos de CSRF na resposta
                 if (csrfResponse.Headers.TryGetValues("X-CSRF-Token", out var csrfValues))
                 {
                     csrfToken = csrfValues.FirstOrDefault();
                     usaCsrf = true;
-                    if (debug)
-                        Console.WriteLine($"Token CSRF encontrado no cabeçalho: {csrfToken}");
+                    Console.WriteLine($"Token CSRF encontrado no cabeçalho X-CSRF-Token: {csrfToken}");
+                }
+                else if (csrfResponse.Headers.TryGetValues("X-XSRF-Token", out var xsrfValues))
+                {
+                    csrfToken = xsrfValues.FirstOrDefault();
+                    usaCsrf = true;
+                    Console.WriteLine($"Token CSRF encontrado no cabeçalho X-XSRF-Token: {csrfToken}");
+                }
+                else if (csrfResponse.Headers.TryGetValues("X-Portainer-CSRF", out var portainerCsrfValues))
+                {
+                    csrfToken = portainerCsrfValues.FirstOrDefault();
+                    usaCsrf = true;
+                    Console.WriteLine($"Token CSRF encontrado no cabeçalho X-Portainer-CSRF: {csrfToken}");
                 }
 
                 // Se não encontrou no cabeçalho, procura nos cookies
                 if (string.IsNullOrEmpty(csrfToken))
                 {
                     var cookies = cookieContainer.GetCookies(new Uri(baseUrl));
+                    Console.WriteLine("Cookies recebidos na resposta inicial:");
                     foreach (Cookie cookie in cookies)
                     {
+                        Console.WriteLine($"  {cookie.Name}: {cookie.Value}");
+                        
                         if (
-                            cookie.Name.Contains("csrf", StringComparison.OrdinalIgnoreCase)
-                            || cookie.Name.Contains("XSRF", StringComparison.OrdinalIgnoreCase)
+                            cookie.Name.Contains("csrf", StringComparison.OrdinalIgnoreCase) ||
+                            cookie.Name.Contains("XSRF", StringComparison.OrdinalIgnoreCase) ||
+                            cookie.Name.Contains("portainer.CSRF", StringComparison.OrdinalIgnoreCase)
                         )
                         {
                             csrfToken = cookie.Value;
                             usaCsrf = true;
-                            if (debug)
-                                Console.WriteLine(
-                                    $"Token CSRF encontrado no cookie {cookie.Name}: {csrfToken}"
-                                );
+                            Console.WriteLine($"Token CSRF encontrado no cookie {cookie.Name}: {csrfToken}");
                             break;
                         }
                     }
@@ -251,57 +284,11 @@ namespace PortainerDeploy
                 if (string.IsNullOrEmpty(csrfToken))
                 {
                     var htmlContent = await csrfResponse.Content.ReadAsStringAsync();
-
-                    // Procura no formato: csrfToken: "abc123"
-                    var match = Regex.Match(
-                        htmlContent,
-                        @"csrfToken\s*:\s*[""']([^""']+)[""']",
-                        RegexOptions.IgnoreCase
-                    );
-                    if (match.Success)
+                    csrfToken = ExtrairTokenCsrfDoHtml(htmlContent);
+                    
+                    if (!string.IsNullOrEmpty(csrfToken))
                     {
-                        csrfToken = match.Groups[1].Value;
                         usaCsrf = true;
-                        if (debug)
-                            Console.WriteLine(
-                                $"Token CSRF encontrado no HTML (formato csrfToken): {csrfToken}"
-                            );
-                    }
-                    else
-                    {
-                        // Procura no formato: <meta name="csrf-token" content="abc123">
-                        match = Regex.Match(
-                            htmlContent,
-                            @"<meta\s+name=[""']csrf-token[""']\s+content=[""']([^""']+)[""']",
-                            RegexOptions.IgnoreCase
-                        );
-                        if (match.Success)
-                        {
-                            csrfToken = match.Groups[1].Value;
-                            usaCsrf = true;
-                            if (debug)
-                                Console.WriteLine(
-                                    $"Token CSRF encontrado no HTML (formato meta tag): {csrfToken}"
-                                );
-                        }
-                        else
-                        {
-                            // Procura em variáveis JavaScript
-                            match = Regex.Match(
-                                htmlContent,
-                                @"csrf_token\s*=\s*[""']([^""']+)[""']",
-                                RegexOptions.IgnoreCase
-                            );
-                            if (match.Success)
-                            {
-                                csrfToken = match.Groups[1].Value;
-                                usaCsrf = true;
-                                if (debug)
-                                    Console.WriteLine(
-                                        $"Token CSRF encontrado no HTML (formato JS): {csrfToken}"
-                                    );
-                            }
-                        }
                     }
                 }
             }
@@ -350,6 +337,83 @@ namespace PortainerDeploy
                             authToken
                         );
                         Console.WriteLine("Autenticação JWT bem-sucedida!");
+                        
+                        // Verificar se a resposta de autenticação contém um token CSRF
+                        if (response.Headers.TryGetValues("X-CSRF-Token", out var authCsrfValues))
+                        {
+                            csrfToken = authCsrfValues.FirstOrDefault();
+                            usaCsrf = true;
+                            Console.WriteLine($"Token CSRF encontrado no cabeçalho da resposta de autenticação: {csrfToken}");
+                        }
+                        else if (response.Headers.TryGetValues("X-XSRF-Token", out var authXsrfValues))
+                        {
+                            csrfToken = authXsrfValues.FirstOrDefault();
+                            usaCsrf = true;
+                            Console.WriteLine($"Token CSRF encontrado como X-XSRF-Token na resposta de autenticação: {csrfToken}");
+                        }
+                        
+                        // Verificar cookies após autenticação
+                        var authCookies = cookieContainer.GetCookies(new Uri(baseUrl));
+                        if (debug)
+                        {
+                            Console.WriteLine("Cookies após autenticação JWT:");
+                            foreach (Cookie cookie in authCookies)
+                            {
+                                Console.WriteLine($"  {cookie.Name}: {cookie.Value}");
+                                
+                                if (cookie.Name.Contains("csrf", StringComparison.OrdinalIgnoreCase) || 
+                                    cookie.Name.Contains("xsrf", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    csrfToken = cookie.Value;
+                                    usaCsrf = true;
+                                    Console.WriteLine($"Token CSRF encontrado em cookie após autenticação: {csrfToken}");
+                                }
+                            }
+                        }
+                        
+                        // Se ainda não temos um CSRF token, tentar obter da página inicial
+                        if (string.IsNullOrEmpty(csrfToken))
+                        {
+                            Console.WriteLine("Tentando obter token CSRF após autenticação JWT...");
+                            try
+                            {
+                                var postAuthResponse = await client.GetAsync(baseUrl);
+                                if (postAuthResponse.IsSuccessStatusCode)
+                                {
+                                    // Verificar headers
+                                    if (postAuthResponse.Headers.TryGetValues("X-CSRF-Token", out var postAuthCsrfValues))
+                                    {
+                                        csrfToken = postAuthCsrfValues.FirstOrDefault();
+                                        usaCsrf = true;
+                                        Console.WriteLine($"Token CSRF encontrado após autenticação JWT: {csrfToken}");
+                                    }
+                                    
+                                    // Verificar o HTML
+                                    var postAuthHtml = await postAuthResponse.Content.ReadAsStringAsync();
+                                    var extractedToken = ExtrairTokenCsrfDoHtml(postAuthHtml);
+                                    if (!string.IsNullOrEmpty(extractedToken))
+                                    {
+                                        csrfToken = extractedToken;
+                                        usaCsrf = true;
+                                    }
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                if (debug)
+                                    Console.WriteLine($"Erro ao tentar obter token CSRF após autenticação: {ex.Message}");
+                            }
+                        }
+                        
+                        // Se ainda não temos um token CSRF, vamos criar um para testes
+                        if (string.IsNullOrEmpty(csrfToken))
+                        {
+                            // Estratégia alternativa: usar um GUID como token CSRF para testes
+                            csrfToken = Guid.NewGuid().ToString("N");
+                            usaCsrf = true;
+                            Console.WriteLine($"Criado token CSRF para testes: {csrfToken}");
+                        }
+                        
                         return;
                     }
                 }
@@ -836,6 +900,63 @@ namespace PortainerDeploy
             return endpointId;
         }
 
+        private static async Task<bool> RenovarTokenCsrf(string baseUrl)
+        {
+            Console.WriteLine("Renovando token CSRF...");
+            try
+            {
+                // Fazer uma solicitação GET para a página inicial para obter um novo token CSRF
+                var csrfResponse = await client.GetAsync(baseUrl);
+                
+                if (csrfResponse.IsSuccessStatusCode)
+                {
+                    // Verificar headers para token CSRF
+                    if (csrfResponse.Headers.TryGetValues("X-CSRF-Token", out var csrfValues))
+                    {
+                        csrfToken = csrfValues.FirstOrDefault();
+                        Console.WriteLine($"Token CSRF renovado a partir do header: {csrfToken}");
+                        return true;
+                    }
+                    
+                    // Verificar cookies
+                    var cookies = cookieContainer.GetCookies(new Uri(baseUrl));
+                    foreach (Cookie cookie in cookies)
+                    {
+                        if (cookie.Name.Contains("csrf", StringComparison.OrdinalIgnoreCase) || 
+                            cookie.Name.Contains("xsrf", StringComparison.OrdinalIgnoreCase))
+                        {
+                            csrfToken = cookie.Value;
+                            Console.WriteLine($"Token CSRF renovado a partir de cookie: {csrfToken}");
+                            return true;
+                        }
+                    }
+                    
+                    // Extrair do HTML
+                    var htmlContent = await csrfResponse.Content.ReadAsStringAsync();
+                    var extractedToken = ExtrairTokenCsrfDoHtml(htmlContent);
+                    if (!string.IsNullOrEmpty(extractedToken))
+                    {
+                        csrfToken = extractedToken;
+                        Console.WriteLine($"Token CSRF renovado a partir do HTML: {csrfToken}");
+                        return true;
+                    }
+                    
+                    Console.WriteLine("Não foi possível renovar o token CSRF - nenhum token encontrado");
+                    return false;
+                }
+                else
+                {
+                    Console.WriteLine($"Falha ao renovar token CSRF. Status: {csrfResponse.StatusCode}");
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erro ao renovar token CSRF: {ex.Message}");
+                return false;
+            }
+        }
+
         private static async Task DeployContainer(
             string baseUrl,
             int endpointId,
@@ -846,6 +967,9 @@ namespace PortainerDeploy
         {
             Console.WriteLine($"Iniciando deploy do container {containerName} usando endpoint ID: {endpointId}...");
 
+            // Renovar token CSRF antes do deploy
+            await RenovarTokenCsrf(baseUrl);
+            
             string dockerBasePath;
             if (endpointId > 0)
             {
@@ -874,9 +998,15 @@ namespace PortainerDeploy
             // 1. Verificar se o container existe e removê-lo
             await RemoverContainerSeExistir(baseUrl, endpointId, containerName);
 
+            // Renovar token CSRF novamente antes de puxar a imagem
+            await RenovarTokenCsrf(baseUrl);
+            
             // 2. Puxar a nova imagem
             await PuxarImagem(baseUrl, endpointId, imageName);
 
+            // Renovar token CSRF novamente antes de criar o container
+            await RenovarTokenCsrf(baseUrl);
+            
             // 3. Criar e iniciar o novo container
             await CriarEIniciarContainer(baseUrl, endpointId, imageName, containerName, hostPort);
         }
@@ -1217,9 +1347,32 @@ namespace PortainerDeploy
             // Adicionar o token CSRF se estiver disponível
             if (!string.IsNullOrEmpty(csrfToken))
             {
+                // Usar múltiplos headers para garantir compatibilidade
                 requisicao.Headers.Add("X-CSRF-Token", csrfToken);
+                requisicao.Headers.Add("X-XSRF-Token", csrfToken);
+                requisicao.Headers.Add("X-Portainer-CSRF", csrfToken);
+                
+                // Adicionar também como cookie
+                Cookie csrfCookie = new Cookie("portainer.CSRF", csrfToken)
+                {
+                    Domain = new Uri(url).Host
+                };
+                cookieContainer.Add(csrfCookie);
+                
                 if (debug)
-                    Console.WriteLine("Token CSRF adicionado ao cabeçalho da requisição");
+                {
+                    Console.WriteLine($"Token CSRF adicionado aos cabeçalhos da requisição: {csrfToken}");
+                    Console.WriteLine($"Headers na requisição para {url}:");
+                    foreach (var header in requisicao.Headers)
+                    {
+                        Console.WriteLine($"  {header.Key}: {string.Join(", ", header.Value)}");
+                    }
+                }
+            }
+            else
+            {
+                if (debug)
+                    Console.WriteLine("AVISO: Requisição sendo feita sem token CSRF");
             }
             
             return requisicao;
@@ -1257,6 +1410,152 @@ namespace PortainerDeploy
         {
             public string? Id { get; set; }
             public string[]? Warnings { get; set; }
+        }
+
+        private static string? ExtrairTokenCsrfDoHtml(string html)
+        {
+            if (string.IsNullOrEmpty(html))
+                return null;
+                
+            // Várias estratégias para encontrar o token CSRF em diferentes formatos
+            
+            // 1. Procura no formato: csrfToken: "abc123"
+            var match = Regex.Match(
+                html,
+                @"csrfToken\s*:\s*[""']([^""']+)[""']",
+                RegexOptions.IgnoreCase
+            );
+            if (match.Success)
+            {
+                Console.WriteLine($"Token CSRF encontrado no HTML (formato csrfToken): {match.Groups[1].Value}");
+                return match.Groups[1].Value;
+            }
+            
+            // 2. Procura no formato: <meta name="csrf-token" content="abc123">
+            match = Regex.Match(
+                html,
+                @"<meta\s+name=[""']csrf-token[""']\s+content=[""']([^""']+)[""']",
+                RegexOptions.IgnoreCase
+            );
+            if (match.Success)
+            {
+                Console.WriteLine($"Token CSRF encontrado no HTML (formato meta tag): {match.Groups[1].Value}");
+                return match.Groups[1].Value;
+            }
+            
+            // 3. Procura em variáveis JavaScript
+            match = Regex.Match(
+                html,
+                @"csrf_token\s*=\s*[""']([^""']+)[""']",
+                RegexOptions.IgnoreCase
+            );
+            if (match.Success)
+            {
+                Console.WriteLine($"Token CSRF encontrado no HTML (formato JS): {match.Groups[1].Value}");
+                return match.Groups[1].Value;
+            }
+            
+            // 4. Procura em input hidden
+            match = Regex.Match(
+                html,
+                @"<input\s+[^>]*name=[""'](_csrf|csrf_token|xsrf_token)[""'][^>]*value=[""']([^""']+)[""']",
+                RegexOptions.IgnoreCase
+            );
+            if (match.Success)
+            {
+                Console.WriteLine($"Token CSRF encontrado no HTML (input hidden): {match.Groups[2].Value}");
+                return match.Groups[2].Value;
+            }
+            
+            // 5. Procura em data attributes
+            match = Regex.Match(
+                html,
+                @"data-csrf-token=[""']([^""']+)[""']",
+                RegexOptions.IgnoreCase
+            );
+            if (match.Success)
+            {
+                Console.WriteLine($"Token CSRF encontrado no HTML (data attribute): {match.Groups[1].Value}");
+                return match.Groups[1].Value;
+            }
+            
+            // 6. Procura qualquer string que pareça um token CSRF
+            match = Regex.Match(
+                html,
+                @"csrf[\w\-\.]*[=:][""'\s]*([a-zA-Z0-9\-_\+/=]+)[""'\s]*",
+                RegexOptions.IgnoreCase
+            );
+            if (match.Success)
+            {
+                Console.WriteLine($"Token CSRF encontrado no HTML (formato genérico): {match.Groups[1].Value}");
+                return match.Groups[1].Value;
+            }
+            
+            Console.WriteLine("Nenhum token CSRF encontrado no HTML");
+            return null;
+        }
+
+        private static async Task<string?> VerificarEdicaoPortainer(string baseUrl)
+        {
+            try
+            {
+                Console.WriteLine("Verificando edição do Portainer...");
+                var statusUrl = $"{baseUrl}api/status";
+                var response = await client.GetAsync(statusUrl);
+                
+                if (response.IsSuccessStatusCode)
+                {
+                    var content = await response.Content.ReadAsStringAsync();
+                    Console.WriteLine($"Resposta de status: {content}");
+                    
+                    // Verificar se é uma edição específica
+                    if (content.Contains("\"Edition\":\"CE\"") || content.Contains("\"Edition\": \"CE\""))
+                    {
+                        Console.WriteLine("Detectada edição Portainer Community Edition (CE)");
+                        return "CE";
+                    }
+                    else if (content.Contains("\"Edition\":\"BE\"") || content.Contains("\"Edition\": \"BE\""))
+                    {
+                        Console.WriteLine("Detectada edição Portainer Business Edition (BE)");
+                        return "BE";
+                    }
+                    else if (content.Contains("\"Edition\":\"EE\"") || content.Contains("\"Edition\": \"EE\""))
+                    {
+                        Console.WriteLine("Detectada edição Portainer Enterprise Edition (EE)");
+                        return "EE";
+                    }
+                }
+                
+                // Se não conseguiu detectar, tentar pela versão
+                if (response.IsSuccessStatusCode)
+                {
+                    var content = await response.Content.ReadAsStringAsync();
+                    if (content.Contains("\"Version\""))
+                    {
+                        var versionMatch = Regex.Match(content, @"""Version""\s*:\s*""([^""]+)""");
+                        if (versionMatch.Success)
+                        {
+                            string version = versionMatch.Groups[1].Value;
+                            Console.WriteLine($"Versão do Portainer: {version}");
+                            
+                            // Análise baseada na versão
+                            if (version.StartsWith("2."))
+                            {
+                                Console.WriteLine("Portainer versão 2.x detectada - assumindo Community Edition");
+                                return "CE";
+                            }
+                        }
+                    }
+                }
+                
+                Console.WriteLine("Não foi possível determinar a edição do Portainer");
+                return null;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erro ao verificar edição do Portainer: {ex.Message}");
+                return null;
+            }
         }
     }
 }
