@@ -26,7 +26,7 @@ namespace Application.Messaging.Request.Medico
                 throw new AuzException("Documento Federal inválido");
 
             if (string.IsNullOrWhiteSpace(Telefone) || !Telefone.ValidarCelular())
-                throw new AuzException("Senha ausente");
+                throw new AuzException("Telefone ausente");
         }
     }
 }
