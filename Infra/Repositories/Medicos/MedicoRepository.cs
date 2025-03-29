@@ -42,7 +42,7 @@ namespace Infra.Repositories.Medicos
 
             sql += " ORDER BY DtInclusao ASC OFFSET @p2 ROWS FETCH NEXT @p3 ROWS ONLY";
 
-            return Database.SqlQueryRaw<ListarMedicoRawQuery>(sql, codigoUsuario, filtro, pagina, itensPorPagina);
+            return Database.SqlQueryRaw<ListarMedicoRawQuery>(sql, codigoUsuario, filtro, pagina == 1 ? 0 : pagina, itensPorPagina);
         }
 
         public CountRawQuery ObterTotalizador(string filtro, Guid codigoUsuario)
