@@ -34,7 +34,7 @@ namespace Infra.Repositories.Atendimentos
                 INNER JOIN 
                 	dbo.Paciente AS pa WITH(NOLOCK) ON pa.Codigo = ate.CodigoPaciente
                 INNER JOIN 
-                    dbo.Usuario AS us WITH(NOLOCK) ON pa.Codigo = ate.CodigoUsuario
+                    dbo.Usuario AS us WITH(NOLOCK) ON us.Codigo = ate.CodigoUsuario
                 WHERE 
                 	ate.CodigoUsuario = @p0
                 """;
