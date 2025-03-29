@@ -1,17 +1,11 @@
-﻿using Domain.Enums;
+﻿using Infra.RawQueryResult;
 
 namespace Application.Messaging.Response.Medico
 {
     public class ListarMedicosResponse
     {
-        public Guid Codigo { get; set; }
-        public Situacao Situacao { get; set; }
-        public string? Nome { get; set; }
-        public DateTime DtInclusao { get; set; }
-        public DateTime? DtSituacao { get; set; }
-        public string CRM { get; set; }
-        public string? Email { get; set; }
-        public string? Telefone { get; set; }
-        public string? DocumentoFederal { get; set; }
+       public IEnumerable<ListarMedicoRawQuery> ListaMedicos { get; set; }
+       public int TotalPaginas {  get; set; }
+       public int Itens {  get; set; }
     }
 }

@@ -44,25 +44,27 @@ namespace Web.Controllers
             }
         }
 
-        //public ActionResult<ListarMedicosResponse> Listar(ListarMedicoRequest request)
-        //{
-        //    try
-        //    {
-        //        var codigoUsuario = ObterCodigoUsuario();
+        [Authorize]
+        [HttpGet("Listar")]
+        public ActionResult<ListarMedicosResponse> Listar(ListarMedicoRequest request)
+        {
+            try
+            {
+                var codigoUsuario = ObterCodigoUsuario();
 
-        //        _medicoService.Cadastrar(cadastroMedico, codigoUsuario);
+                var response = _medicoService.Listar(request, codigoUsuario);
 
-        //        return Created();
-        //    }
-        //    catch (AuzException ex)
-        //    {
-        //        return BadRequest(new { Sucesso = false, Mensagem = ex.Message });
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _logger.LogError(ex.Message);
-        //        return StatusCode(500, new { Sucesso = false, Mensagem = "Ocorreu um erro na requisição." });
-        //    }
-        //}
+                return Ok(response);
+            }
+            catch (AuzException ex)
+            {
+                return BadRequest(new { Sucesso = false, Mensagem = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return StatusCode(500, new { Sucesso = false, Mensagem = "Ocorreu um erro na requisição." });
+            }
+        }
     }
 }

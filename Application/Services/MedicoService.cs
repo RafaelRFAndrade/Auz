@@ -35,9 +35,20 @@ namespace Application.Services
             _medicoRepository.Inserir(medico);
         }
 
-        //public ListarMedicosResponse Listar(ListarMedicoRequest request, Guid codigoUsuario)
-        //{
-        //    var listaMedicos = _medicoRepository
-        //}
+        public ListarMedicosResponse Listar(ListarMedicoRequest request, Guid codigoUsuario)
+        {
+            var listaMedicos = _medicoRepository.Listar(request.Filtro, codigoUsuario, request.Pagina.GetValueOrDefault(), request.ItensPorPagina.GetValueOrDefault());
+
+            var totalizador = _medicoRepository.ObterTotalizador(request.Filtro, codigoUsuario);
+
+            var total = totalizador.Count / request.ItensPorPagina.GetValueOrDefault(25);
+
+            return new ListarMedicosResponse
+            {
+                ListaMedicos = listaMedicos,
+                TotalPaginas = total == 0 ? 25 : total,
+                Itens = totalizador.Count
+            };
+        }
     }
 }
