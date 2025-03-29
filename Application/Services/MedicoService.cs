@@ -1,5 +1,6 @@
 ﻿using Application.Interfaces;
 using Application.Messaging.Request.Medico;
+using Application.Messaging.Response.Medico;
 using Domain.Entidades;
 using Infra.Repositories.Medicos;
 
@@ -25,10 +26,18 @@ namespace Application.Services
                 Nome = request.Nome,
                 Situacao = Domain.Enums.Situacao.Ativo,
                 DtInclusao = DateTime.Now,
-                CRM = request.CRM
+                CRM = request.CRM,
+                Email = request.Email,
+                Telefone = request.Telefone,
+                DocumentoFederal = request.DocumentoFederal,
             };
 
             _medicoRepository.Inserir(medico);
         }
+
+        //public ListarMedicosResponse Listar(ListarMedicoRequest request, Guid codigoUsuario)
+        //{
+        //    var listaMedicos = _medicoRepository
+        //}
     }
 }

@@ -22,9 +22,18 @@ namespace Domain.Entidades
 
         public DateTime DtInclusao { get; set; }
 
-        public DateTime DtSituacao { get; set; }
+        public DateTime? DtSituacao { get; set; }
 
         [StringLength(15)]
         public string CRM { get; set; }
+
+        [StringLength(255)]
+        public string? Email { get; set; }
+
+        [StringLength(12)]
+        public string? Telefone { get; set; }
+
+        [StringLength(11)]
+        public string? DocumentoFederal { get; set; }
     }
 }

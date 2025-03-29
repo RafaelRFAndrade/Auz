@@ -22,6 +22,23 @@ namespace Application.Helpers
             return cpf.EndsWith($"{primeiroDigito}{segundoDigito}");
         }
 
+        public static bool ValidarCelular(this string celular)
+        {
+            if (string.IsNullOrWhiteSpace(celular)) return false;
+
+            celular = Regex.Replace(celular, "[^0-9]", "");
+
+            if (celular.Length != 11) return false;
+
+            if (celular[2] != '9') return false;
+
+            string ddd = celular.Substring(0, 2);
+            int dddNumero = int.Parse(ddd);
+            if (dddNumero < 11 || dddNumero > 99) return false;
+
+            return true;
+        }
+
         private static int CalcularDigito(string cpf, int[] multiplicadores)
         {
             int soma = cpf.Select((t, i) => (t - '0') * multiplicadores[i]).Sum();
