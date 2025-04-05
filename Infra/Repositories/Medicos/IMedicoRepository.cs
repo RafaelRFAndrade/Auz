@@ -8,5 +8,7 @@ namespace Infra.Repositories.Medicos
         void Inserir(Medico medico);
         IEnumerable<ListarMedicoRawQuery> Listar(string filtro, Guid codigoUsuario, int pagina, int itensPorPagina);
         CountRawQuery ObterTotalizador(string filtro, Guid codigoUsuario);
+        Medico Obter(Guid codigo);
+        void Atualizar(Medico medico);
     }
 }

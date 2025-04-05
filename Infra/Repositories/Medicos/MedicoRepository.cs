@@ -40,7 +40,7 @@ namespace Infra.Repositories.Medicos
             if (!string.IsNullOrWhiteSpace(filtro))
                 sql += " AND (Nome LIKE CONCAT('%', @p1, '%') OR CRM LIKE CONCAT('%', @p1, '%') OR Email LIKE CONCAT('%', @p1, '%') OR Telefone LIKE CONCAT('%', @p1, '%') OR DocumentoFederal LIKE CONCAT('%', @p1, '%'))";
 
-            sql += " ORDER BY DtInclusao ASC OFFSET @p2 ROWS FETCH NEXT @p3 ROWS ONLY";
+            sql += " ORDER BY DtInclusao DESC OFFSET @p2 ROWS FETCH NEXT @p3 ROWS ONLY";
 
             return Database.SqlQueryRaw<ListarMedicoRawQuery>(sql, codigoUsuario, filtro, pagina == 1 ? 0 : pagina, itensPorPagina);
         }
@@ -61,6 +61,27 @@ namespace Infra.Repositories.Medicos
                 sql += " AND (Nome LIKE CONCAT('%', @p1, '%') OR CRM LIKE CONCAT('%', @p1, '%') OR Email LIKE CONCAT('%', @p1, '%') OR Telefone LIKE CONCAT('%', @p1, '%') OR DocumentoFederal LIKE CONCAT('%', @p1, '%'))";
 
             return Database.SqlQueryRaw<CountRawQuery>(sql, codigoUsuario, filtro).FirstOrDefault();
+        }
+
+        public Medico Obter(Guid codigo)
+        {
+            const string sql =
+                """
+                SELECT TOP 1
+                    *
+                FROM 
+                    dbo.Medico WITH(NOLOCK)
+                WHERE
+                    Codigo = @p0
+                """;
+
+            return Database.SqlQueryRaw<Medico>(sql, codigo).FirstOrDefault();
+        }
+
+        public void Atualizar(Medico medico)
+        {
+            Update(medico);
+            SaveChanges();
         }
     }
 }

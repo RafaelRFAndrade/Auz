@@ -1,6 +1,6 @@
-﻿namespace Application.Messaging.Request.Medico
+﻿namespace Application.Messaging.Request
 {
-    public class ListarMedicoRequest
+    public class ListarRequest
     {
         public string? Filtro { get; set; }
         public int? Pagina { get; set; } = 1;

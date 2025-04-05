@@ -1,5 +1,6 @@
 ﻿using Application.Interfaces;
 using Application.Messaging.Exception;
+using Application.Messaging.Request;
 using Application.Messaging.Request.Medico;
 using Application.Messaging.Response.Medico;
 using Microsoft.AspNetCore.Authorization;
@@ -46,7 +47,7 @@ namespace Web.Controllers
 
         [Authorize]
         [HttpGet("Listar")]
-        public ActionResult<ListarMedicosResponse> Listar(ListarMedicoRequest request)
+        public ActionResult<ListarMedicosResponse> Listar(ListarRequest request)
         {
             try
             {
@@ -55,6 +56,52 @@ namespace Web.Controllers
                 var response = _medicoService.Listar(request, codigoUsuario);
 
                 return Ok(response);
+            }
+            catch (AuzException ex)
+            {
+                return BadRequest(new { Sucesso = false, Mensagem = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return StatusCode(500, new { Sucesso = false, Mensagem = "Ocorreu um erro na requisição." });
+            }
+        }
+
+        [Authorize]
+        [HttpPut]
+        public IActionResult Atualizar(AtualizarMedicoRequest request)
+        {
+            try
+            {
+                var codigoUsuario = ObterCodigoUsuario();
+
+                _medicoService.Atualizar(request, codigoUsuario);
+
+                return Ok();
+            }
+            catch (AuzException ex)
+            {
+                return BadRequest(new { Sucesso = false, Mensagem = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return StatusCode(500, new { Sucesso = false, Mensagem = "Ocorreu um erro na requisição." });
+            }
+        }
+
+        [Authorize]
+        [HttpDelete]
+        public IActionResult Desativar(DesativarMedicoRequest request)
+        {
+            try
+            {
+                var codigoUsuario = ObterCodigoUsuario();
+
+                _medicoService.Desativar(request, codigoUsuario);
+
+                return Ok();
             }
             catch (AuzException ex)
             {

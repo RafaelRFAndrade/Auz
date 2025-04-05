@@ -1,4 +1,5 @@
 ﻿using Domain.Entidades;
+using Domain.Enums;
 using Infra.RawQueryResult;
 using Infra.Repositories.Base;
 using Microsoft.EntityFrameworkCore;
@@ -40,6 +41,38 @@ namespace Infra.Repositories.Atendimentos
                 """;
 
             return Database.SqlQueryRaw<ObterAtendimentosRawQuery>(sql, codigoUsuario);
+        }
+
+        public bool ValidarAtendimentoAtivosPorMedico(Guid codigoMedico)
+        {
+            const string sql =
+                """
+                    SELECT 
+                	    COUNT(*) AS Count
+                    FROM 
+                	    dbo.Atendimento
+                    WHERE 
+                        CodigoMedico = @p0 AND 
+                        Situacao = @p1 
+                """;
+
+            return Database.SqlQueryRaw<CountRawQuery>(sql, codigoMedico, Situacao.Ativo).FirstOrDefault()?.Count > 0;
+        }
+
+        public bool ValidarAtendimentoAtivosPorPaciente(Guid codigoPaciente)
+        {
+            const string sql =
+                """
+                    SELECT 
+                	    COUNT(*) AS Count
+                    FROM 
+                	    dbo.Atendimento
+                    WHERE 
+                        CodigoPaciente = @p0 AND 
+                        Situacao = @p1 
+                """;
+
+            return Database.SqlQueryRaw<CountRawQuery>(sql, codigoPaciente, Situacao.Ativo).FirstOrDefault()?.Count > 0;
         }
     }
 }

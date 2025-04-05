@@ -1,7 +1,11 @@
 ﻿using Application.Interfaces;
+using Application.Messaging.Exception;
+using Application.Messaging.Request;
 using Application.Messaging.Request.Medico;
 using Application.Messaging.Response.Medico;
+using AutoMapper;
 using Domain.Entidades;
+using Infra.Repositories.Atendimentos;
 using Infra.Repositories.Medicos;
 
 namespace Application.Services
@@ -9,10 +13,14 @@ namespace Application.Services
     public class MedicoService : IMedicoService
     {
         private readonly IMedicoRepository _medicoRepository;
+        private readonly IMapper _mapper;
+        private readonly IAtendimentoRepository _atendimentoRepository;
 
-        public MedicoService(IMedicoRepository medicoRepository)
+        public MedicoService(IMedicoRepository medicoRepository, IMapper mapper, IAtendimentoRepository atendimentoRepository)
         {
             _medicoRepository = medicoRepository;
+            _mapper = mapper;
+            _atendimentoRepository = atendimentoRepository;
         }
 
         public void Cadastrar(CadastroMedicoRequest request, Guid codigoUsuario)
@@ -35,7 +43,7 @@ namespace Application.Services
             _medicoRepository.Inserir(medico);
         }
 
-        public ListarMedicosResponse Listar(ListarMedicoRequest request, Guid codigoUsuario)
+        public ListarMedicosResponse Listar(ListarRequest request, Guid codigoUsuario)
         {
             var listaMedicos = _medicoRepository.Listar(request.Filtro, codigoUsuario, request.Pagina.GetValueOrDefault(), request.ItensPorPagina.GetValueOrDefault());
 
@@ -49,6 +57,43 @@ namespace Application.Services
                 TotalPaginas = total == 0 ? 25 : total,
                 Itens = totalizador.Count
             };
+        }
+
+        public void Atualizar(AtualizarMedicoRequest request, Guid codigoUsuario)
+        {
+            request.Validar();
+
+            var medico = _medicoRepository.Obter(request.Codigo) ??
+                throw new AuzException("Médico não encontrado");
+
+            if (medico.CodigoUsuario != codigoUsuario)
+                throw new AuzException("Usuário não possuí permissão para alterar o médico");
+
+            if (medico.DocumentoFederal != request.DocumentoFederal)
+                throw new AuzException("Não é possível alterar o documento federal.");
+
+            _mapper.Map(request, medico);
+
+            medico.DtSituacao = DateTime.Now;
+
+            _medicoRepository.Atualizar(medico);
+        }
+
+        public void Desativar(DesativarMedicoRequest request, Guid codigoUsuario)
+        {
+            var medico = _medicoRepository.Obter(request.CodigoMedico) ??
+                throw new AuzException("Médico não encontrado");
+
+            if (medico.CodigoUsuario != codigoUsuario)
+                throw new AuzException("Usuário não possuí permissão para alterar o médico");
+
+            if(_atendimentoRepository.ValidarAtendimentoAtivosPorMedico(medico.Codigo))
+                throw new AuzException("Médico possuí atendimentos em andamento");
+
+            medico.Situacao = Domain.Enums.Situacao.Desativo;
+            medico.DtSituacao = DateTime.Now;
+
+            _medicoRepository.Atualizar(medico);
         }
     }
 }

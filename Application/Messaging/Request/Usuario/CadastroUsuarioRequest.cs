@@ -8,7 +8,6 @@ namespace Application.Messaging.Request.Usuario
         public string? Nome { get; set; }
         public string? Email { get; set; }
         public string? Senha { get; set; }
-
         public TipoPermissao TipoPermissao { get; set; }
 
         public void Validar()
@@ -16,10 +15,13 @@ namespace Application.Messaging.Request.Usuario
           if (string.IsNullOrWhiteSpace(Nome))
                  throw new AuzException("Nome ausente");
 
-          if(string.IsNullOrWhiteSpace(Senha))
+          if (string.IsNullOrWhiteSpace(Senha))
                 throw new AuzException("Senha ausente");
-        
-          if(string.IsNullOrWhiteSpace(Email))
+
+          if (Senha?.Length < 6)
+                throw new AuzException("Senha precisa de pelo menos 6 caracteres");
+
+          if (string.IsNullOrWhiteSpace(Email))
                 throw new AuzException("Email ausente");
         }
     }

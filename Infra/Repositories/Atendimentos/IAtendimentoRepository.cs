@@ -7,5 +7,7 @@ namespace Infra.Repositories.Atendimentos
     {
         void Inserir(Atendimento atendimento);
         IEnumerable<ObterAtendimentosRawQuery> ObterAtendimentosPorCodigoUsuario(Guid codigoUsuario);
+        bool ValidarAtendimentoAtivosPorMedico(Guid codigoMedico);
+        bool ValidarAtendimentoAtivosPorPaciente(Guid codigoPaciente);
     }
 }

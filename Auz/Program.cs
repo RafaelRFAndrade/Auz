@@ -1,5 +1,8 @@
 using Application.Interfaces;
+using Application.Messaging.Request.Medico;
+using Application.Messaging.Request.Paciente;
 using Application.Services;
+using Domain.Entidades;
 using Infra.Repositories.Agendamentos;
 using Infra.Repositories.Atendimentos;
 using Infra.Repositories.Base;
@@ -38,6 +41,13 @@ builder.Services.AddDbContext<RepositoryBase>(options =>
         builder.Configuration.GetConnectionString("DefaultConnection")
     )
 );
+
+builder.Services.AddAutoMapper(config => {
+    config.CreateMap<AtualizarMedicoRequest, Medico>();
+        //.ForAllMembers(opts => opts.Condition((src, dest, srcMember) =>
+        //    srcMember != null)); // Só atualiza propriedades não nulas
+    config.CreateMap<AtualizarPacienteRequest, Paciente>();
+});
 
 builder.Services.AddAuthentication(options =>
 {
