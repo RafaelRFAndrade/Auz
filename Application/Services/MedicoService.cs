@@ -59,6 +59,16 @@ namespace Application.Services
             };
         }
 
+        public Medico Obter(Guid codigoMedico, Guid codigoUsuario)
+        {
+            var medico = _medicoRepository.Obter(codigoMedico);
+
+            if (medico.CodigoUsuario != codigoUsuario)
+                throw new AuzException("Usuário não tem permissão para vizualizar esse médico");
+
+            return medico;
+        }
+
         public void Atualizar(AtualizarMedicoRequest request, Guid codigoUsuario)
         {
             request.Validar();
