@@ -47,7 +47,7 @@ namespace Web.Controllers
 
         [Authorize]
         [HttpGet("Listar")]
-        public ActionResult<ListarMedicosResponse> Listar(ListarRequest request)
+        public ActionResult<ListarMedicosResponse> Listar([FromQuery] ListarRequest request)
         {
             try
             {

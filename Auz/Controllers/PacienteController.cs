@@ -1,10 +1,8 @@
 ﻿using Application.Interfaces;
 using Application.Messaging.Exception;
 using Application.Messaging.Request;
-using Application.Messaging.Request.Medico;
 using Application.Messaging.Request.Paciente;
 using Application.Messaging.Response.Paciente;
-using Application.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Web.Controllers.Base;
@@ -46,10 +44,10 @@ namespace Web.Controllers
                 return StatusCode(500, new { Sucesso = false, Mensagem = "Ocorreu um erro na requisição." });
             }
         }
-
+        
         [Authorize]
         [HttpGet("Listar")]
-        public ActionResult<ListarPacienteResponse> Listar([FromQuery]ListarRequest request)
+        public ActionResult<ListarPacienteResponse> Listar([FromQuery] ListarRequest request)
         {
             try
             {
