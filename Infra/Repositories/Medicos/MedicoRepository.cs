@@ -35,6 +35,8 @@ namespace Infra.Repositories.Medicos
                 	dbo.Medico  WITH(NOLOCK)
                 WHERE 
                     CodigoUsuario = @p0
+                AND
+                    Situacao = 0
                 """;
 
             if (!string.IsNullOrWhiteSpace(filtro))
@@ -73,6 +75,8 @@ namespace Infra.Repositories.Medicos
                     dbo.Medico WITH(NOLOCK)
                 WHERE
                     Codigo = @p0
+                AND
+                    Situacao = 0
                 """;
 
             return Database.SqlQueryRaw<Medico>(sql, codigo).FirstOrDefault();
