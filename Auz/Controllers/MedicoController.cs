@@ -70,7 +70,7 @@ namespace Web.Controllers
 
         [Authorize]
         [HttpGet("{codigoMedico}")]
-        public ActionResult<ListarMedicosResponse> Obter(Guid codigoMedico)
+        public ActionResult Obter(Guid codigoMedico)
         {
             try
             {

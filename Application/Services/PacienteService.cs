@@ -94,5 +94,15 @@ namespace Application.Services
 
             _pacienteRepository.Atualizar(paciente);
         }
+
+        public Paciente Obter(Guid codigoPaciente, Guid codigoUsuario)
+        {
+            var paciente = _pacienteRepository.Obter(codigoPaciente);
+
+            if (paciente.CodigoUsuario != codigoUsuario)
+                throw new AuzException("Usuário não tem permissão para vizualizar esse médico");
+
+            return paciente;
+        }
     }
 }

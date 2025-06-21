@@ -46,6 +46,11 @@ namespace Application.Services
 
             usuario.Senha = _autenticacaoService.Encriptador(usuario, usuario.Senha);
 
+            var usuarioJaExistente = _usuarioRepository.ObterPorEmail(request.Email);
+
+            if (usuarioJaExistente is not null)
+                throw new AuzException("Email já cadastrado.");
+
             _usuarioRepository.Inserir(usuario);
         }
 
