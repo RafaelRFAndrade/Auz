@@ -42,5 +42,28 @@ namespace Web.Controllers
                 return StatusCode(500, new { Sucesso = false, Mensagem = "Ocorreu um erro na requisição." });
             }
         }
+
+        [HttpGet("Listar")]
+        [Authorize]
+        public IActionResult Listar([FromQuery]ListarAtendimentosRequest request)
+        {
+            try
+            {
+                var codigoUsuario = ObterCodigoUsuario();
+
+                var atendimentos = _atendimentoService.ListarAtendimentos(request, codigoUsuario);
+
+                return Ok(atendimentos);
+            }
+            catch (AuzException ex)
+            {
+                return BadRequest(new { Sucesso = false, Mensagem = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return StatusCode(500, new { Sucesso = false, Mensagem = "Ocorreu um erro na requisição." });
+            }
+        }
     }
 }

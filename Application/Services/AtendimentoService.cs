@@ -1,6 +1,9 @@
 ﻿using Application.Interfaces;
 using Application.Messaging.Request.Atendimento;
+using Application.Messaging.Response.Atendimento;
+using Application.Messaging.Response.Paciente;
 using Domain.Entidades;
+using Infra.RawQueryResult;
 using Infra.Repositories.Atendimentos;
 
 namespace Application.Services
@@ -30,6 +33,22 @@ namespace Application.Services
             };
 
             _atendimentoRepository.Inserir(atendimento); 
+        }
+
+        public ListarAtendimentosResponse ListarAtendimentos(ListarAtendimentosRequest request, Guid codigoUsuario)
+        {
+            var atendimentos = _atendimentoRepository.ListarAtendimentos(codigoUsuario, request.Pagina.GetValueOrDefault(), request.ItensPorPagina.GetValueOrDefault());
+
+            var totalizador = _atendimentoRepository.TotalizarAtendimentos(codigoUsuario);
+
+            var total = totalizador.Count / request.ItensPorPagina.GetValueOrDefault(25);
+
+            return new ListarAtendimentosResponse
+            {
+                Atendimentos = atendimentos,
+                TotalPaginas = total == 0 ? 25 : total,
+                Itens = totalizador.Count
+            };
         }
     }
 }
