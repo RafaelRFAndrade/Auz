@@ -6,8 +6,10 @@ using Domain.Entidades;
 using Domain.Enums;
 using Infra.Repositories.Agendamentos;
 using Infra.Repositories.Atendimentos;
+using Infra.Repositories.Parceiro;
 using Infra.Repositories.Usuarios;
 using Microsoft.AspNetCore.Identity;
+using System.Transactions;
 
 namespace Application.Services
 {
@@ -17,16 +19,19 @@ namespace Application.Services
         private readonly IAutenticacaoService _autenticacaoService;
         private readonly IAgendamentoRepository _agendamentoRepository;
         private readonly IAtendimentoRepository _atendimentoRepository;
+        private readonly IParceiroRepository _parceiroRepository;
 
         public UsuarioService(IUsuarioRepository usuarioRepository,
             IAutenticacaoService autenticacaoService,
             IAtendimentoRepository atendimentoRepository,
-            IAgendamentoRepository agendamentoRepository) 
+            IAgendamentoRepository agendamentoRepository,
+            IParceiroRepository parceiroRepository)
         {
             _usuarioRepository = usuarioRepository;
             _autenticacaoService = autenticacaoService;
             _agendamentoRepository = agendamentoRepository;
             _atendimentoRepository = atendimentoRepository;
+            _parceiroRepository = parceiroRepository;
         }
 
         public void Cadastrar(CadastroUsuarioRequest request)
@@ -51,10 +56,26 @@ namespace Application.Services
             if (usuarioJaExistente is not null)
                 throw new AuzException("Email já cadastrado.");
 
-            _usuarioRepository.Inserir(usuario);
-        }
+            var parceiro = new Parceiro
+            {
+                Codigo = Guid.NewGuid(),
+                Situacao = Situacao.Ativo,
+                DtInclusao = DateTime.Now,
+                DtSituacao = DateTime.Now,
+                Admin = false,
+                Nome = request.NomeParceiro
+            };
 
-        public Usuario Login(LoginRequest request)
+            using (var transactionScope = new TransactionScope())
+            {
+                _usuarioRepository.Inserir(usuario);
+                _parceiroRepository.Inserir(parceiro);
+
+                transactionScope.Complete();
+            }
+        }
+    
+      public Usuario Login(LoginRequest request)
         {
             var usuario = _usuarioRepository.ObterPorEmail(request.Email);
 

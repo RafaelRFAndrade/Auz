@@ -13,13 +13,49 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Microsoft.OpenApi.Models;
+using Infra.Repositories.Parceiro;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "Auz",
+        Version = "v1"
+    });
+
+    // Configuração para permitir JWT via Swagger
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Digite 'Bearer {seu token}' para autenticar"
+    });
+
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] {}
+        }
+    });
+});
 
 //Repos
 builder.Services.AddTransient<IUsuarioRepository, UsuarioRepository>();
@@ -27,6 +63,7 @@ builder.Services.AddTransient<IAtendimentoRepository, AtendimentoRepository>();
 builder.Services.AddTransient<IPacienteRepository, PacienteRepository>();
 builder.Services.AddTransient<IMedicoRepository, MedicoRepository>();
 builder.Services.AddTransient<IAgendamentoRepository, AgendamentoRepository>();
+builder.Services.AddTransient<IParceiroRepository, ParceiroRepository>();
 
 //Services
 builder.Services.AddTransient<IUsuarioService, UsuarioService>();
@@ -79,6 +116,8 @@ builder.Services.AddCors(options =>
         });
 });
 
+
+
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
@@ -90,6 +129,7 @@ app.UseCors("AllowSpecificOrigin");
     app.UseSwagger();
     app.UseSwaggerUI();
 //}
+
 
 app.UseHttpsRedirection();
 

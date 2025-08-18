@@ -9,6 +9,7 @@ namespace Application.Messaging.Request.Usuario
         public string? Email { get; set; }
         public string? Senha { get; set; }
         public TipoPermissao TipoPermissao { get; set; }
+        public string? NomeParceiro { get; set; }
 
         public void Validar()
         {
