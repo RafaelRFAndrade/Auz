@@ -75,7 +75,7 @@ namespace Infra.Repositories.Atendimentos
             return Database.SqlQueryRaw<CountRawQuery>(sql, codigoPaciente, Situacao.Ativo).FirstOrDefault()?.Count > 0;
         }
 
-        public List<ListarAtendimentosRawQuery> ListarAtendimentos(Guid codigoUsuario, int pagina, int itensPorPagina)
+        public List<ListarAtendimentosRawQuery> ListarAtendimentos(Guid codigoParceiro, int pagina, int itensPorPagina)
         {
             const string sql =
                 """
@@ -88,19 +88,21 @@ namespace Infra.Repositories.Atendimentos
                 	    ate.Descricao
                     FROM 
                 	    dbo.Atendimento AS ate WITH(NOLOCK)
+                    INNER JOIN
+                        dbo.Usuario AS us WITH(NOLOCK) ON us.CodigoParceiro = @p0
                     INNER JOIN 
                 	    dbo.Paciente AS pa WITH(NOLOCK) ON pa.Codigo = ate.CodigoPaciente
                     INNER JOIN
                         dbo.Medico AS me WITH(NOLOCK) ON me.Codigo = ate.CodigoMedico
                     WHERE 
-                        ate.CodigoUsuario = @p0 AND ate.Situacao = @p1
+                        ate.CodigoUsuario = us.Codigo AND ate.Situacao = @p1
                     ORDER BY ate.DtInclusao DESC OFFSET @p2 ROWS FETCH NEXT @p3 ROWS ONLY
                 """;
 
-            return Database.SqlQueryRaw<ListarAtendimentosRawQuery>(sql, codigoUsuario, Situacao.Ativo, pagina == 1 ? 0 : pagina, itensPorPagina).ToList();
+            return Database.SqlQueryRaw<ListarAtendimentosRawQuery>(sql, codigoParceiro, Situacao.Ativo, pagina == 1 ? 0 : pagina, itensPorPagina).ToList();
          }
 
-        public CountRawQuery TotalizarAtendimentos(Guid codigoUsuario)
+        public CountRawQuery TotalizarAtendimentos(Guid codigoParceiro)
         {
             const string sql =
                 """
@@ -108,13 +110,15 @@ namespace Infra.Repositories.Atendimentos
                         COUNT(*) as Count
                     FROM 
                 	    dbo.Atendimento AS ate WITH(NOLOCK)
+                    INNER JOIN
+                        dbo.Usuario AS us WITH(NOLOCK) ON us.CodigoParceiro = @p0
                     INNER JOIN 
                 	    dbo.Paciente AS pa WITH(NOLOCK) ON pa.Codigo = ate.CodigoPaciente
                     WHERE 
-                        ate.CodigoUsuario = @p0 AND ate.Situacao = @p1
+                        ate.CodigoUsuario = us.Codigo AND ate.Situacao = @p1
                 """;
 
-            return Database.SqlQueryRaw<CountRawQuery>(sql, codigoUsuario, Situacao.Ativo).FirstOrDefault();
+            return Database.SqlQueryRaw<CountRawQuery>(sql, codigoParceiro, Situacao.Ativo).FirstOrDefault();
         }
     }
 }

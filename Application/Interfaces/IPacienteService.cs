@@ -12,5 +12,6 @@ namespace Application.Interfaces
         void Atualizar(AtualizarPacienteRequest request, Guid codigoUsuario);
         void Desativar(DesativarPacienteRequest request, Guid codigoUsuario);
         Paciente Obter(Guid codigoPaciente, Guid codigoUsuario);
+        Paciente ObterPorDocumentoFederal(string documentoFederal, Guid codigoParceiro);
     }
 }

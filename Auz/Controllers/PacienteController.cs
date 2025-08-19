@@ -3,6 +3,7 @@ using Application.Messaging.Exception;
 using Application.Messaging.Request;
 using Application.Messaging.Request.Paciente;
 using Application.Messaging.Response.Paciente;
+using Application.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Web.Controllers.Base;
@@ -123,6 +124,29 @@ namespace Web.Controllers
                 var codigoUsuario = ObterCodigoUsuario();
 
                 var response = _pacienteService.Obter(codigoPaciente, codigoUsuario);
+
+                return Ok(response);
+            }
+            catch (AuzException ex)
+            {
+                return BadRequest(new { Sucesso = false, Mensagem = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return StatusCode(500, new { Sucesso = false, Mensagem = "Ocorreu um erro na requisição." });
+            }
+        }
+
+        [Authorize]
+        [HttpGet("BuscarPorCpf/{cpf}")]
+        public ActionResult ObterPorDocumento(string cpf)
+        {
+            try
+            {
+                var codigoParceiro = ObterCodigoParceiro();
+
+                var response = _pacienteService.ObterPorDocumentoFederal(cpf, codigoParceiro);
 
                 return Ok(response);
             }

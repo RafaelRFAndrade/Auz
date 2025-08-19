@@ -77,6 +77,27 @@ namespace Infra.Repositories.Pacientes
             return Database.SqlQueryRaw<Paciente>(sql, codigo).FirstOrDefault();
         }
 
+        public Paciente ObterPorDocumentoFederal(string documentoFederal, Guid codigoParceiro)
+        {
+            const string sql =
+                """
+                SELECT TOP 1
+                   pa.*
+                FROM 
+                    dbo.Paciente AS pa WITH(NOLOCK)
+                INNER JOIN 
+                    Usuario AS us WITH(NOLOCK) 
+                    ON us.CodigoParceiro = @p1
+                WHERE
+                    pa.DocumentoFederal = @p0
+                AND
+                    pa.Situacao = 0
+                AND pa.CodigoUsuario = us.Codigo
+                """;
+
+            return Database.SqlQueryRaw<Paciente>(sql, documentoFederal, codigoParceiro).FirstOrDefault();
+        }
+
         public void Atualizar(Paciente paciente)
         {
             Update(paciente);

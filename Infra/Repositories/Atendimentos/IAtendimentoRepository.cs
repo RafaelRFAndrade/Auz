@@ -9,7 +9,7 @@ namespace Infra.Repositories.Atendimentos
         IEnumerable<ObterAtendimentosRawQuery> ObterAtendimentosPorCodigoUsuario(Guid codigoUsuario);
         bool ValidarAtendimentoAtivosPorMedico(Guid codigoMedico);
         bool ValidarAtendimentoAtivosPorPaciente(Guid codigoPaciente);
-        List<ListarAtendimentosRawQuery> ListarAtendimentos(Guid codigoUsuario, int pagina, int itensPorPagina);
+        List<ListarAtendimentosRawQuery> ListarAtendimentos(Guid codigoParceiro, int pagina, int itensPorPagina);
         CountRawQuery TotalizarAtendimentos(Guid codigoUsuario);
     }
 }

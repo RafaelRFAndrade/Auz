@@ -10,5 +10,6 @@ namespace Infra.Repositories.Pacientes
         CountRawQuery ObterTotalizador(string filtro, Guid codigoUsuario);
         Paciente Obter(Guid codigo);
         void Atualizar(Paciente paciente);
+        Paciente ObterPorDocumentoFederal(string documentoFederal, Guid codigoParceiro);
     }
 }

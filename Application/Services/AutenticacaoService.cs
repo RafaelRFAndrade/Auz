@@ -29,7 +29,8 @@ namespace Application.Services
                 {
                 new Claim(ClaimTypes.NameIdentifier, usuario.Codigo.ToString()),
                 new Claim(ClaimTypes.Name, usuario.Nome),
-                new Claim(ClaimTypes.Email, usuario.Email)
+                new Claim(ClaimTypes.Email, usuario.Email),
+                new Claim("ParceiroId", usuario.CodigoParceiro.ToString())
             }),
                 Expires = DateTime.UtcNow.AddMinutes(double.Parse(_configuration["Jwt:ExpireMinutes"])),
                 Issuer = _configuration["Jwt:Issuer"],

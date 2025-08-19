@@ -20,7 +20,7 @@ namespace Web.Controllers
             _atendimentoService = atendimentoService;
         }
 
-        [HttpPost]
+        [HttpPost("Cadastrar")]
         [Authorize]
         public IActionResult Cadastrar(CadastroAtendimentoRequest request)
         {
@@ -28,7 +28,9 @@ namespace Web.Controllers
             {
                 var codigoUsuario = ObterCodigoUsuario();
 
-                _atendimentoService.Cadastrar(request, codigoUsuario);
+                var codigoParceiro = ObterCodigoParceiro();
+
+                _atendimentoService.Cadastrar(request, codigoUsuario, codigoParceiro);
 
                 return Created();
             }
@@ -51,7 +53,9 @@ namespace Web.Controllers
             {
                 var codigoUsuario = ObterCodigoUsuario();
 
-                var atendimentos = _atendimentoService.ListarAtendimentos(request, codigoUsuario);
+                var codigoParceiro = ObterCodigoParceiro();
+
+                var atendimentos = _atendimentoService.ListarAtendimentos(request, codigoUsuario, codigoParceiro);
 
                 return Ok(atendimentos);
             }

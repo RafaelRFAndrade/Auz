@@ -5,7 +5,7 @@ namespace Application.Interfaces
 {
     public interface IAtendimentoService
     {
-        void Cadastrar(CadastroAtendimentoRequest request, Guid codigoUsuario);
-        ListarAtendimentosResponse ListarAtendimentos(ListarAtendimentosRequest request, Guid codigoUsuario);
+        void Cadastrar(CadastroAtendimentoRequest request, Guid codigoUsuario, Guid codigoParceiro);
+        ListarAtendimentosResponse ListarAtendimentos(ListarAtendimentosRequest request, Guid codigoUsuario, Guid codigoParceiro);
     }
 }

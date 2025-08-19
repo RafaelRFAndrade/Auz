@@ -104,5 +104,12 @@ namespace Application.Services
 
             return paciente;
         }
+
+        public Paciente ObterPorDocumentoFederal(string documentoFederal, Guid codigoParceiro)
+        {
+            var paciente = _pacienteRepository.ObterPorDocumentoFederal(documentoFederal, codigoParceiro);
+
+            return paciente;
+        }
     }
 }

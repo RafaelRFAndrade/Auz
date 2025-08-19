@@ -105,5 +105,12 @@ namespace Application.Services
 
             _medicoRepository.Atualizar(medico);
         }
+
+        public Medico ObterPorDocumento(string documentoFederal, Guid codigoParceiro)
+        {
+            var medico = _medicoRepository.ObterPorDocumentoFederal(documentoFederal, codigoParceiro);
+
+            return medico;
+        }
     }
 }

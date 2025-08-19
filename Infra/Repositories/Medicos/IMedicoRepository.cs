@@ -10,5 +10,6 @@ namespace Infra.Repositories.Medicos
         CountRawQuery ObterTotalizador(string filtro, Guid codigoUsuario);
         Medico Obter(Guid codigo);
         void Atualizar(Medico medico);
+        Medico ObterPorDocumentoFederal(string DocumentoFederal, Guid codigoParceiro);
     }
 }

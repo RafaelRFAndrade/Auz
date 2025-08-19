@@ -17,5 +17,15 @@ namespace Web.Controllers.Base
 
             return Guid.Parse(codigoUsuario);
         }
+
+        protected Guid ObterCodigoParceiro()
+        {
+            var codigoParceiro = User.FindFirstValue("ParceiroId");
+
+            if (string.IsNullOrWhiteSpace(codigoParceiro))
+                throw new AuzException("Parceiro não encontrado.");
+
+            return Guid.Parse(codigoParceiro);
+        }
     }
 }
