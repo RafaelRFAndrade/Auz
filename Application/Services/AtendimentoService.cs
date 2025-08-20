@@ -79,9 +79,20 @@ namespace Application.Services
             return new ListarAtendimentosResponse
             {
                 Atendimentos = atendimentos,
-                TotalPaginas = total == 0 ? 25 : total,
+                TotalPaginas = total == 0 ? 1 : total,
                 Itens = totalizador.Count
             };
+        }
+
+        public void Deletar(Guid codigoAtendimento)
+        {
+            var atendimento = _atendimentoRepository.Obter(codigoAtendimento) ?? 
+                throw new AuzException("Atendimento não encontrado.");
+
+            atendimento.Situacao = Domain.Enums.Situacao.Desativo;
+            atendimento.DtSituacao = DateTime.Now;
+
+            _atendimentoRepository.Atualizar(atendimento);
         }
     }
 }

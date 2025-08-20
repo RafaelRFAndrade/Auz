@@ -1,4 +1,5 @@
 ﻿using Domain.Entidades;
+using Domain.Enums;
 using Infra.Helper;
 using Infra.RawQueryResult;
 using Infra.Repositories.Base;
@@ -46,6 +47,26 @@ namespace Infra.Repositories.Agendamentos
                 codigoUsuario,
                 DatetimeHelper.NormalizarInicio(DateTime.Now),
                 DatetimeHelper.NormalizarFim(DateTime.Now));
+        }
+
+        public List<AgendamentoRawQueryResult> ObterAgendamentosPorParceiro(Guid codigoParceiro)
+        {
+            const string sql =
+                """
+                SELECT 
+                    age.Codigo as CodigoAgendamento,
+                    age.DtAgendamento,
+                	age.Descricao
+                FROM 	
+                	dbo.Agendamento AS age WITH(NOLOCK)
+                INNER JOIN 
+                	dbo.Usuario AS us WITH(NOLOCK) ON us.CodigoParceiro = @p0
+                WHERE 
+                	age.CodigoUsuario = us.Codigo AND
+                    age.Situacao = @p1
+                """;
+
+            return Database.SqlQueryRaw<AgendamentoRawQueryResult>(sql, codigoParceiro, Situacao.Ativo).ToList();
         }
     }
 }

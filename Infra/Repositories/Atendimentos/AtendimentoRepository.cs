@@ -120,5 +120,32 @@ namespace Infra.Repositories.Atendimentos
 
             return Database.SqlQueryRaw<CountRawQuery>(sql, codigoParceiro, Situacao.Ativo).FirstOrDefault();
         }
+
+        public void Deletar(Atendimento atendimento)
+        {
+            Remove(atendimento);
+            SaveChanges();
+        }
+
+        public Atendimento Obter(Guid codigoAtendimento)
+        {
+            const string sql =
+                """
+                SELECT TOP 1
+                	ate.*
+                FROM 	
+                	dbo.Atendimento AS ate WITH(NOLOCK) 
+                WHERE 
+                	ate.Codigo = @p0
+                """;
+
+            return Database.SqlQueryRaw<Atendimento>(sql, codigoAtendimento).FirstOrDefault();
+        }
+
+        public void Atualizar(Atendimento atendimento)
+        {
+            Update(atendimento);
+            SaveChanges();
+        }
     }
 }

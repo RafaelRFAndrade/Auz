@@ -11,5 +11,8 @@ namespace Infra.Repositories.Atendimentos
         bool ValidarAtendimentoAtivosPorPaciente(Guid codigoPaciente);
         List<ListarAtendimentosRawQuery> ListarAtendimentos(Guid codigoParceiro, int pagina, int itensPorPagina);
         CountRawQuery TotalizarAtendimentos(Guid codigoUsuario);
+        void Deletar(Atendimento atendimento);
+        Atendimento Obter(Guid codigoAtendimento);
+        void Atualizar(Atendimento atendimento);
     }
 }

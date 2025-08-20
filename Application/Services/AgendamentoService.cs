@@ -1,6 +1,8 @@
 ﻿using Application.Interfaces;
 using Application.Messaging.Request.Agendamento;
+using Application.Messaging.Response.Agendamento;
 using Domain.Entidades;
+using Infra.RawQueryResult;
 using Infra.Repositories.Agendamentos;
 
 namespace Application.Services
@@ -18,7 +20,7 @@ namespace Application.Services
         {
             request.Validar();
 
-            var atendimento = new Agendamento
+            var agendamento = new Agendamento
             {
                 Codigo = Guid.NewGuid(),
                 CodigoAtendimento = request.CodigoAtendimento,
@@ -29,7 +31,23 @@ namespace Application.Services
                 CodigoUsuario = codigoUsuario
             };
 
-            _agendamentoRepository.Inserir(atendimento);
+            _agendamentoRepository.Inserir(agendamento);
+        }
+
+        public List<AgendamentoRawQueryResult> Listar(Guid codigoParceiro)
+        {
+            return _agendamentoRepository.ObterAgendamentosPorParceiro(codigoParceiro);
+
+            //var totalizador = _agendamentoRepository.Totalizar(codigoParceiro);
+
+            //var total = totalizador.Count / request.ItensPorPagina.GetValueOrDefault(25);
+
+            //return new AgendamentosResponse
+            //{
+            //    Agendamentos = agendamentos,
+            //    TotalPaginas = total == 0 ? 1 : total,
+            //    Itens = totalizador.Count
+            //};
         }
     }
 }
