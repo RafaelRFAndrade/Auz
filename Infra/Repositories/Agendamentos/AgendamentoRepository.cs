@@ -37,8 +37,10 @@ namespace Infra.Repositories.Agendamentos
                 	dbo.Medico AS me WITH(NOLOCK) ON me.Codigo = ate.CodigoMedico
                 INNER JOIN 
                 	dbo.Paciente AS pa WITH(NOLOCK) ON pa.Codigo = ate.CodigoPaciente
+                INNER JOIN 
+                    dbo.Usuario AS us WITH(NOLOCK) ON us.CodigoParceiro = @p0
                 WHERE 
-                	age.CodigoUsuario = @p0
+                	age.CodigoUsuario = us.Codigo
                 AND DtAgendamento BETWEEN @p1 AND @p2
                 """
             ;

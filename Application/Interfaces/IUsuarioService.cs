@@ -8,6 +8,6 @@ namespace Application.Interfaces
     {
         void Cadastrar(CadastroUsuarioRequest request);
         Usuario Login(LoginRequest request);
-        ValoresHomeResponse CarregarRelacionamentos(Guid codigoUsuario);
+        ValoresHomeResponse CarregarRelacionamentos(Guid codigoUsuario, Guid codigoParceiro);
     }
 }

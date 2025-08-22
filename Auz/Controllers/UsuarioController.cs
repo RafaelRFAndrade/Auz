@@ -94,8 +94,8 @@ namespace Web.Controllers
             try
             {
                 var codigoUsuario = ObterCodigoUsuario();
-
-                var response = _usuarioService.CarregarRelacionamentos(codigoUsuario);
+                var codigoParceiro = ObterCodigoParceiro(); 
+                var response = _usuarioService.CarregarRelacionamentos(codigoUsuario, codigoParceiro);
 
                 return Ok(response);
             }

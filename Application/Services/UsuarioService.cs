@@ -66,10 +66,12 @@ namespace Application.Services
                 Nome = request.NomeParceiro
             };
 
+            usuario.CodigoParceiro = parceiro.Codigo;
+
             using (var transactionScope = new TransactionScope())
             {
-                _usuarioRepository.Inserir(usuario);
                 _parceiroRepository.Inserir(parceiro);
+                _usuarioRepository.Inserir(usuario);
 
                 transactionScope.Complete();
             }
@@ -92,12 +94,12 @@ namespace Application.Services
             return usuario;
         }
 
-        public ValoresHomeResponse CarregarRelacionamentos(Guid codigoUsuario)
+        public ValoresHomeResponse CarregarRelacionamentos(Guid codigoUsuario, Guid codigoParceiro)
         {
             var nomeUsuario = _usuarioRepository.ObterNome(codigoUsuario);
             var atendimentos = _atendimentoRepository.ObterAtendimentosPorCodigoUsuario(codigoUsuario);
 
-            var agendamentos = _agendamentoRepository.ObterAgendamentosPorCodigoUsuario(codigoUsuario);
+            var agendamentos = _agendamentoRepository.ObterAgendamentosPorCodigoUsuario(codigoParceiro);
 
             return new ValoresHomeResponse
             {
