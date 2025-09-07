@@ -27,6 +27,14 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Itens de Solução", "Itens
 		Dockerfile = Dockerfile
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test", "Test\Test.csproj", "{834F29FE-51DD-4E9D-BFC6-62E46EC9B1FF}"
+	ProjectSection(ProjectDependencies) = postProject
+		{8F13EF0C-77D3-4085-AF23-408FACEEDEF7} = {8F13EF0C-77D3-4085-AF23-408FACEEDEF7}
+		{92D82821-0BEE-43C2-B5A0-B0843E77CC2D} = {92D82821-0BEE-43C2-B5A0-B0843E77CC2D}
+		{A9C531B0-88F9-4D82-9A96-13E2006ABADC} = {A9C531B0-88F9-4D82-9A96-13E2006ABADC}
+		{EE545738-92A8-40C6-9A09-996981D388A7} = {EE545738-92A8-40C6-9A09-996981D388A7}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -49,6 +57,10 @@ Global
 		{A9C531B0-88F9-4D82-9A96-13E2006ABADC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A9C531B0-88F9-4D82-9A96-13E2006ABADC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A9C531B0-88F9-4D82-9A96-13E2006ABADC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{834F29FE-51DD-4E9D-BFC6-62E46EC9B1FF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{834F29FE-51DD-4E9D-BFC6-62E46EC9B1FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{834F29FE-51DD-4E9D-BFC6-62E46EC9B1FF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{834F29FE-51DD-4E9D-BFC6-62E46EC9B1FF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
