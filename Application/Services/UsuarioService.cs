@@ -2,6 +2,7 @@
 using Application.Messaging.Exception;
 using Application.Messaging.Request.Usuario;
 using Application.Messaging.Response.Usuario;
+using Azure.Core;
 using Domain.Entidades;
 using Domain.Enums;
 using Infra.Repositories.Agendamentos;
@@ -107,6 +108,22 @@ namespace Application.Services
                 Agendamentos = agendamentos,
                 Atendimentos = atendimentos,
                 Sucesso = true
+            };
+        }
+
+        public ObterUsuariosParceiroResponse ObterUsuariosPorParceiro(Guid codigoParceiro, ObterUsuariosPorParceiroRequest request)
+        {
+            var usuarios = _usuarioRepository.ObterUsuariosPorParceiro(codigoParceiro, request.Pagina.GetValueOrDefault(1), request.Itens.GetValueOrDefault(25));
+
+            var totalizador = _usuarioRepository.ObterTotalizador(codigoParceiro);
+
+            var total = totalizador.Count / request.Itens.GetValueOrDefault(25);
+
+            return new ObterUsuariosParceiroResponse
+            {
+                Usuarios = usuarios,
+                TotalPaginas = total == 0 ? 25 : total,
+                Itens = totalizador.Count
             };
         }
     }

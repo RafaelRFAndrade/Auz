@@ -51,5 +51,43 @@ namespace Infra.Repositories.Usuarios
 
             return Database.SqlQueryRaw<StringRawQuery>(sql, codigoUsuario).FirstOrDefault();
         }
+
+        public List<UsuariosRawQuery> ObterUsuariosPorParceiro(Guid codigoParceiro, int pagina, int itens)
+        {
+            const string sql =
+                """
+                SELECT 
+                    Codigo,
+                    CodigoParceiro,
+                    Situacao,
+                    Nome,
+                    Email,
+                    DtInclusao,
+                    DtSituacao,
+                    TipoPermissao
+                FROM 	
+                	dbo.Usuario WITH(NOLOCK) 
+                WHERE 
+                	CodigoParceiro = @p0
+                ORDER BY DtInclusao DESC OFFSET @p1 ROWS FETCH NEXT @p2 ROWS ONLY
+                """;
+
+            return Database.SqlQueryRaw<UsuariosRawQuery>(sql, codigoParceiro, pagina == 1 ? 0 : pagina * 25, itens).ToList();
+        }
+
+        public CountRawQuery ObterTotalizador(Guid codigoParceiro)
+        {
+            const string sql =
+                """
+                SELECT 
+                    COUNT(*) as Count
+                FROM 	
+                	dbo.Usuario WITH(NOLOCK) 
+                WHERE 
+                	CodigoParceiro = @p0
+                """;
+
+            return Database.SqlQueryRaw<CountRawQuery>(sql, codigoParceiro).FirstOrDefault();
+        }
     }
 }
