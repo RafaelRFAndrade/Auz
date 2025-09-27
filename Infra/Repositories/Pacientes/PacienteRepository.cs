@@ -103,5 +103,28 @@ namespace Infra.Repositories.Pacientes
             Update(paciente);
             SaveChanges();
         }
+
+        public List<ListarDocumentosRawQuery> ObterDocumentos(string DocumentoFederal, Guid codigoParceiro)
+        {
+            const string sql =
+                """
+                SELECT TOP 10
+                    pa.DocumentoFederal,
+                    pa.Nome,
+                    pa.Email
+                FROM 
+                    dbo.Paciente AS pa WITH(NOLOCK)
+                INNER JOIN 
+                    Usuario AS us WITH(NOLOCK) 
+                    ON us.CodigoParceiro = @p1
+                WHERE
+                    pa.DocumentoFederal LIKE CONCAT('%', @p0, '%')
+                AND
+                    pa.Situacao = 0
+                AND pa.CodigoUsuario = us.Codigo
+                """;
+
+            return Database.SqlQueryRaw<ListarDocumentosRawQuery>(sql, DocumentoFederal, codigoParceiro).ToList();
+        }
     }
 }

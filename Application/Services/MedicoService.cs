@@ -5,6 +5,7 @@ using Application.Messaging.Request.Medico;
 using Application.Messaging.Response.Medico;
 using AutoMapper;
 using Domain.Entidades;
+using Infra.RawQueryResult;
 using Infra.Repositories.Atendimentos;
 using Infra.Repositories.Medicos;
 
@@ -111,6 +112,13 @@ namespace Application.Services
             var medico = _medicoRepository.ObterPorDocumentoFederal(documentoFederal, codigoParceiro);
 
             return medico;
+        }
+
+        public List<ListarDocumentosRawQuery> BuscarDocumentos(string documentoFederal, Guid codigoParceiro)
+        {
+            var listaDocumentos = _medicoRepository.ObterDocumentos(documentoFederal, codigoParceiro);
+
+            return listaDocumentos;
         }
     }
 }

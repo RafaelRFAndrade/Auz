@@ -159,5 +159,28 @@ namespace Web.Controllers
                 return StatusCode(500, new { Sucesso = false, Mensagem = "Ocorreu um erro na requisição." });
             }
         }
+
+        [Authorize]
+        [HttpGet("BuscarDocumentos/{cpf}")]
+        public ActionResult BuscarDocumentos(string cpf)
+        {
+            try
+            {
+                var codigoParceiro = ObterCodigoParceiro();
+
+                var response = _medicoService.BuscarDocumentos(cpf, codigoParceiro);
+
+                return Ok(response);
+            }
+            catch (AuzException ex)
+            {
+                return BadRequest(new { Sucesso = false, Mensagem = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return StatusCode(500, new { Sucesso = false, Mensagem = "Ocorreu um erro na requisição." });
+            }
+        }
     }
 }

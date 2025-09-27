@@ -11,5 +11,6 @@ namespace Infra.Repositories.Pacientes
         Paciente Obter(Guid codigo);
         void Atualizar(Paciente paciente);
         Paciente ObterPorDocumentoFederal(string documentoFederal, Guid codigoParceiro);
+        List<ListarDocumentosRawQuery> ObterDocumentos(string DocumentoFederal, Guid codigoParceiro);
     }
 }

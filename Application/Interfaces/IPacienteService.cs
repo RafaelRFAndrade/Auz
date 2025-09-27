@@ -2,6 +2,7 @@
 using Application.Messaging.Request.Paciente;
 using Application.Messaging.Response.Paciente;
 using Domain.Entidades;
+using Infra.RawQueryResult;
 
 namespace Application.Interfaces
 {
@@ -13,5 +14,6 @@ namespace Application.Interfaces
         void Desativar(DesativarPacienteRequest request, Guid codigoUsuario);
         Paciente Obter(Guid codigoPaciente, Guid codigoUsuario);
         Paciente ObterPorDocumentoFederal(string documentoFederal, Guid codigoParceiro);
+        List<ListarDocumentosRawQuery> BuscarDocumentos(string documentoFederal, Guid codigoParceiro);
     }
 }

@@ -5,6 +5,7 @@ using Application.Messaging.Request.Paciente;
 using Application.Messaging.Response.Paciente;
 using AutoMapper;
 using Domain.Entidades;
+using Infra.RawQueryResult;
 using Infra.Repositories.Atendimentos;
 using Infra.Repositories.Pacientes;
 
@@ -110,6 +111,13 @@ namespace Application.Services
             var paciente = _pacienteRepository.ObterPorDocumentoFederal(documentoFederal, codigoParceiro);
 
             return paciente;
+        }
+
+        public List<ListarDocumentosRawQuery> BuscarDocumentos(string documentoFederal, Guid codigoParceiro)
+        {
+            var listaDocumentos = _pacienteRepository.ObterDocumentos(documentoFederal, codigoParceiro);
+
+            return listaDocumentos;
         }
     }
 }
