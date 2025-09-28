@@ -1,7 +1,6 @@
 using Application.Interfaces;
 using Application.Messaging.Exception;
 using Application.Messaging.Request.Usuario;
-using Application.Messaging.Response.Usuario;
 using Application.Services;
 using Domain.Entidades;
 using Domain.Enums;
@@ -13,8 +12,6 @@ using Infra.Repositories.Parceiro;
 using Infra.Repositories.Usuarios;
 using Microsoft.AspNetCore.Identity;
 using Moq;
-using Xunit;
-using Xunit.Sdk;
 
 namespace MinhaApp.Tests.Unit.Services
 {
@@ -52,7 +49,7 @@ namespace MinhaApp.Tests.Unit.Services
             {
                 Email = "teste@teste.com",
                 Nome = "Teste",
-                Senha = "123",
+                Senha = "123456",
                 TipoPermissao = TipoPermissao.Admin,
                 NomeParceiro = "Parceiro Teste"
             };
@@ -80,7 +77,7 @@ namespace MinhaApp.Tests.Unit.Services
             {
                 Email = "teste@teste.com",
                 Nome = "Teste",
-                Senha = "123",
+                Senha = "123456",
                 TipoPermissao = TipoPermissao.Admin,
                 NomeParceiro = "Parceiro Teste"
             };
@@ -102,14 +99,14 @@ namespace MinhaApp.Tests.Unit.Services
             var usuario = new Usuario
             {
                 Email = "teste@teste.com",
-                Senha = new PasswordHasher<Usuario>().HashPassword(null, "123")
+                Senha = new PasswordHasher<Usuario>().HashPassword(null, "123456")
             };
 
             _usuarioRepositoryMock
                 .Setup(r => r.ObterPorEmail(usuario.Email))
                 .Returns(usuario);
 
-            var request = new LoginRequest { Email = usuario.Email, Senha = "123" };
+            var request = new LoginRequest { Email = usuario.Email, Senha = "123456" };
 
             // Act
             var result = _service.Login(request);
@@ -126,7 +123,7 @@ namespace MinhaApp.Tests.Unit.Services
                 .Setup(r => r.ObterPorEmail(It.IsAny<string>()))
                 .Returns((Usuario)null);
 
-            var request = new LoginRequest { Email = "inexistente@teste.com", Senha = "123" };
+            var request = new LoginRequest { Email = "inexistente@teste.com", Senha = "123456" };
 
             Action act = () => _service.Login(request);
 
