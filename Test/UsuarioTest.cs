@@ -13,7 +13,7 @@ using Infra.Repositories.Usuarios;
 using Microsoft.AspNetCore.Identity;
 using Moq;
 
-namespace MinhaApp.Tests.Unit.Services
+namespace Application.Tests.Services
 {
     public class UsuarioServiceTests
     {

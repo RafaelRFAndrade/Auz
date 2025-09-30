@@ -1,4 +1,5 @@
 ﻿using Application.Interfaces;
+using Application.Messaging.Exception;
 using Application.Messaging.Request.Agendamento;
 using Application.Messaging.Response.Agendamento;
 using Domain.Entidades;
@@ -30,6 +31,9 @@ namespace Application.Services
                 DtAgendamento = request.DtAgendamento,
                 CodigoUsuario = codigoUsuario
             };
+
+            if (_agendamentoRepository.VerificarDisponibilidade(agendamento.CodigoAtendimento, agendamento.DtAgendamento))
+                throw new AuzException("O operador já possuí um agendamento proximo a data marcada.");
 
             _agendamentoRepository.Inserir(agendamento);
         }

@@ -1,4 +1,5 @@
 ﻿using Domain.Entidades;
+using Domain.Enums;
 using Infra.RawQueryResult;
 using Infra.Repositories.Base;
 using Microsoft.EntityFrameworkCore;

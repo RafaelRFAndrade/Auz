@@ -47,8 +47,8 @@ namespace Infra.Repositories.Agendamentos
 
             return Database.SqlQueryRaw<ObterAgendamentosRawQuery>(sql,
                 codigoUsuario,
-                DatetimeHelper.NormalizarInicio(DateTime.Now),
-                DatetimeHelper.NormalizarFim(DateTime.Now));
+                DatetimeHelper.NormalizarInicioSemana(DateTime.Now),
+                DatetimeHelper.NormalizarFimSemana(DateTime.Now));
         }
 
         public List<AgendamentoRawQueryResult> ObterAgendamentosPorParceiro(Guid codigoParceiro)
@@ -69,6 +69,20 @@ namespace Infra.Repositories.Agendamentos
                 """;
 
             return Database.SqlQueryRaw<AgendamentoRawQueryResult>(sql, codigoParceiro, Situacao.Ativo).ToList();
+        }
+
+        public bool VerificarDisponibilidade(Guid codigoAtendimento, DateTime dataAgendamento)
+        {
+            const string sql =
+                """
+                SELECT COUNT(age.Codigo) AS 'Count' FROM Agendamento AS age 
+                INNER JOIN Atendimento AS ate on Ate.Codigo = @p0
+                INNER JOIN Atendimento AS Ate2 on ate2.CodigoMedico = ate.CodigoMedico
+                WHERE age.CodigoAtendimento = ate2.Codigo AND age.DtAgendamento BETWEEN @p1 AND @p2 
+                AND Situacao = @p3
+                """;
+
+            return Database.SqlQueryRaw<CountRawQuery>(sql, codigoAtendimento, dataAgendamento.AddHours(-1), dataAgendamento.AddHours(1), Situacao.Ativo).FirstOrDefault().Count > 0;
         }
     }
 }
