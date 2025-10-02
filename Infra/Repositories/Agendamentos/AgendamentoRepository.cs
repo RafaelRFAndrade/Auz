@@ -51,24 +51,64 @@ namespace Infra.Repositories.Agendamentos
                 DatetimeHelper.NormalizarFimSemana(DateTime.Now));
         }
 
-        public List<AgendamentoRawQueryResult> ObterAgendamentosPorParceiro(Guid codigoParceiro)
+        public List<AgendamentoRawQueryResult> ObterAgendamentosPorParceiro(Guid codigoParceiro, DateTime diaInicial)
         {
             const string sql =
                 """
                 SELECT 
                     age.Codigo as CodigoAgendamento,
                     age.DtAgendamento,
-                	age.Descricao
+                   	age.Descricao AS 'NomeAgendamento',
+                	me.Nome AS 'NomeMedico',
+                	me.CRM,
+                	pa.Nome AS 'NomePaciente',
+                	pa.Email AS 'EmailPaciente'
                 FROM 	
                 	dbo.Agendamento AS age WITH(NOLOCK)
                 INNER JOIN 
                 	dbo.Usuario AS us WITH(NOLOCK) ON us.CodigoParceiro = @p0
+                INNER JOIN 
+                	dbo.Atendimento AS ate WITH(NOLOCK) ON ate.Codigo = age.CodigoAtendimento
+                INNER JOIN 
+                	dbo.Medico AS me WITH(NOLOCK) ON me.Codigo = ate.CodigoMedico
+                INNER JOIN 
+                	dbo.Paciente AS pa WITH(NOLOCK) ON pa.Codigo = ate.CodigoPaciente
                 WHERE 
                 	age.CodigoUsuario = us.Codigo AND
-                    age.Situacao = @p1
+                    age.Situacao = @p1            AND
+                    DtAgendamento BETWEEN @p2 AND @p3
                 """;
 
-            return Database.SqlQueryRaw<AgendamentoRawQueryResult>(sql, codigoParceiro, Situacao.Ativo).ToList();
+            var ultimoDiaDoMes = new DateTime(diaInicial.Year, diaInicial.Month, DateTime.DaysInMonth(diaInicial.Year, diaInicial.Month)).AddDays(1).AddTicks(-1);
+
+            return Database.SqlQueryRaw<AgendamentoRawQueryResult>(sql, codigoParceiro, Situacao.Ativo, diaInicial, ultimoDiaDoMes).ToList();
+        }
+
+        public CountRawQuery ObterQtdAgendamentosPorParceiro(Guid codigoParceiro, DateTime diaInicial)
+        {
+            const string sql =
+                """
+                SELECT 
+                    COUNT(age.Codigo) AS 'Count'
+                FROM 	
+                	dbo.Agendamento AS age WITH(NOLOCK)
+                INNER JOIN 
+                	dbo.Usuario AS us WITH(NOLOCK) ON us.CodigoParceiro = @p0
+                INNER JOIN 
+                	dbo.Atendimento AS ate WITH(NOLOCK) ON ate.Codigo = age.CodigoAtendimento
+                INNER JOIN 
+                	dbo.Medico AS me WITH(NOLOCK) ON me.Codigo = ate.CodigoMedico
+                INNER JOIN 
+                	dbo.Paciente AS pa WITH(NOLOCK) ON pa.Codigo = ate.CodigoPaciente
+                WHERE 
+                	age.CodigoUsuario = us.Codigo AND
+                    age.Situacao = @p1            AND
+                    DtAgendamento BETWEEN @p2 AND @p3
+                """;
+
+            var ultimoDiaDoMes = new DateTime(diaInicial.Year, diaInicial.Month, DateTime.DaysInMonth(diaInicial.Year, diaInicial.Month)).AddDays(1).AddTicks(-1);
+
+            return Database.SqlQueryRaw<CountRawQuery>(sql, codigoParceiro, Situacao.Ativo, diaInicial, ultimoDiaDoMes).FirstOrDefault();
         }
 
         public bool VerificarDisponibilidade(Guid codigoAtendimento, DateTime dataAgendamento)

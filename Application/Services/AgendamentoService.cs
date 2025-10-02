@@ -38,20 +38,20 @@ namespace Application.Services
             _agendamentoRepository.Inserir(agendamento);
         }
 
-        public List<AgendamentoRawQueryResult> Listar(Guid codigoParceiro)
+        public AgendamentosResponse Listar(Guid codigoParceiro, AgendamentosRequest request)
         {
-            return _agendamentoRepository.ObterAgendamentosPorParceiro(codigoParceiro);
+            var diaInicial = new DateTime(request.Ano, request.Mes, 01); 
 
-            //var totalizador = _agendamentoRepository.Totalizar(codigoParceiro);
+            var agendamentos = _agendamentoRepository.ObterAgendamentosPorParceiro(codigoParceiro, diaInicial);
 
-            //var total = totalizador.Count / request.ItensPorPagina.GetValueOrDefault(25);
+            var qtdAgendamentos = _agendamentoRepository.ObterQtdAgendamentosPorParceiro(codigoParceiro, diaInicial);
 
-            //return new AgendamentosResponse
-            //{
-            //    Agendamentos = agendamentos,
-            //    TotalPaginas = total == 0 ? 1 : total,
-            //    Itens = totalizador.Count
-            //};
+            return new AgendamentosResponse
+            {
+                Agendamentos = agendamentos,
+                QtdAgendamentos = qtdAgendamentos.Count,
+                Sucesso = true
+            };
         }
     }
 }

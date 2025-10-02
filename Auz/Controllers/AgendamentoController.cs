@@ -45,13 +45,13 @@ namespace Web.Controllers
 
         [HttpGet]
         [Authorize]
-        public IActionResult Listar()
+        public IActionResult Listar([FromQuery]AgendamentosRequest request)
         {
             try
             {
                 var codigoParceiro = ObterCodigoParceiro();
 
-                var response = _agendamentoService.Listar( codigoParceiro);
+                var response = _agendamentoService.Listar(codigoParceiro, request);
 
                 return Ok(response);
             }
