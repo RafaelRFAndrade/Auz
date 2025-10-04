@@ -15,6 +15,7 @@ namespace Infra.Repositories.Base
         public DbSet<Atendimento> Atendimento { get; set; }
         public DbSet<Agendamento> Agendamento { get; set; }
         public DbSet<Domain.Entidades.Parceiro> Parceiro { get; set; }
+        public DbSet<Documento> Documento { get; set; } 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

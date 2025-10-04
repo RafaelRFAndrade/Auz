@@ -17,6 +17,7 @@ using Microsoft.OpenApi.Models;
 using Infra.Repositories.Parceiro;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Infra.Repositories.Documentos;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -74,6 +75,7 @@ builder.Services.AddTransient<IPacienteRepository, PacienteRepository>();
 builder.Services.AddTransient<IMedicoRepository, MedicoRepository>();
 builder.Services.AddTransient<IAgendamentoRepository, AgendamentoRepository>();
 builder.Services.AddTransient<IParceiroRepository, ParceiroRepository>();
+builder.Services.AddTransient<IDocumentoRepository, DocumentoRepository>();
 
 //Services
 builder.Services.AddTransient<IUsuarioService, UsuarioService>();
@@ -82,6 +84,7 @@ builder.Services.AddTransient<IAtendimentoService, AtendimentoService>();
 builder.Services.AddTransient<IPacienteService, PacienteService>();
 builder.Services.AddTransient<IMedicoService, MedicoService>();
 builder.Services.AddTransient<IAgendamentoService, AgendamentoService>();
+builder.Services.AddTransient<IAwsService, AwsService>();
 
 builder.Services.AddDbContext<RepositoryBase>(options =>
     options.UseSqlServer(

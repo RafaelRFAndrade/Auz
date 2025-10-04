@@ -1,6 +1,9 @@
 ﻿using Application.Interfaces;
 using Application.Messaging.Exception;
+using Application.Messaging.Request;
+using Application.Messaging.Request.Atendimento;
 using Application.Messaging.Request.Usuario;
+using Application.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Web.Controllers.Base;
@@ -119,6 +122,29 @@ namespace Web.Controllers
                 var codigoUsuario = ObterCodigoUsuario();
                 var codigoParceiro = ObterCodigoParceiro(); 
                 var response = _usuarioService.CarregarRelacionamentos(codigoUsuario, codigoParceiro);
+
+                return Ok(response);
+            }
+            catch (AuzException ex)
+            {
+                return BadRequest(new { Sucesso = false, Mensagem = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return StatusCode(500, new { Sucesso = false, Mensagem = "Ocorreu um erro na requisição." });
+            }
+        }
+
+        [HttpPost("Documento")]
+        [Authorize]
+        public async Task<IActionResult> Upload(UploadDocumentoRequest request)
+        {
+            try
+            {
+                var codigoUsuario = ObterCodigoUsuario();
+
+                var response = await _usuarioService.InserirDocumento(request, codigoUsuario);
 
                 return Ok(response);
             }
