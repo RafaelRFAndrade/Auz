@@ -147,5 +147,31 @@ namespace Infra.Repositories.Atendimentos
             Update(atendimento);
             SaveChanges();
         }
+
+        public ObterAtendimentoRawQuery ObterAtendimento(Guid codigoAtendimento)
+        {
+            const string sql =
+                """
+                SELECT 
+                	ate.Codigo as 'CodigoAtendimento',
+                	ate.Descricao as 'DescricaoAtendimento', 
+                	ate.DtInclusao,
+                	ate.Situacao,
+                	me.DocumentoFederal as 'DocumentoFederalMedico',
+                	me.Nome as 'NomeMedico',
+                	me.Email as 'EmailMedico',
+                	me.Telefone as 'TelefoneMedico',
+                	pa.DocumentoFederal as 'DocumentoFederalPaciente',
+                	pa.Email as 'EmailPaciente',
+                	pa.Nome as 'NomePaciente',
+                	pa.Telefone as 'TelefonePaciente'
+                FROM Atendimento AS ate WITH(NOLOCK)
+                INNER JOIN Medico AS me WITH(NOLOCK) ON me.Codigo = ate.CodigoMedico
+                INNER JOIN Paciente AS pa WITH(NOLOCK) ON pa.Codigo = ate.CodigoPaciente
+                WHERE ate.Codigo = @p0
+                """;
+
+            return Database.SqlQueryRaw<ObterAtendimentoRawQuery>(sql, codigoAtendimento).FirstOrDefault();
+        }
     }
 }

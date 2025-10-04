@@ -8,5 +8,6 @@ namespace Application.Interfaces
         void Cadastrar(CadastroAtendimentoRequest request, Guid codigoUsuario, Guid codigoParceiro);
         ListarAtendimentosResponse ListarAtendimentos(ListarAtendimentosRequest request, Guid codigoUsuario, Guid codigoParceiro);
         void Deletar(Guid codigoAtendimento);
+        ObterAtendimentoResponse ObterRelacionamentos(Guid codigoAtendimento);
     }
 }

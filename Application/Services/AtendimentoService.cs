@@ -5,7 +5,9 @@ using Application.Messaging.Response.Atendimento;
 using Application.Messaging.Response.Paciente;
 using Domain.Entidades;
 using Infra.RawQueryResult;
+using Infra.Repositories.Agendamentos;
 using Infra.Repositories.Atendimentos;
+using Infra.Repositories.Documentos;
 using Infra.Repositories.Medicos;
 using Infra.Repositories.Pacientes;
 
@@ -16,12 +18,20 @@ namespace Application.Services
         private readonly IAtendimentoRepository _atendimentoRepository;
         private readonly IMedicoRepository _medicoRepository;
         private readonly IPacienteRepository _pacienteRepository;
+        private readonly IDocumentoRepository _documentoRepository;
+        private readonly IAgendamentoRepository _agendamentoRepository;  
 
-        public AtendimentoService(IAtendimentoRepository atendimentoRepository, IMedicoRepository medicoRepository, IPacienteRepository pacienteRepository)
+        public AtendimentoService(IAtendimentoRepository atendimentoRepository,
+            IMedicoRepository medicoRepository,
+            IPacienteRepository pacienteRepository,
+            IDocumentoRepository documentoRepository,
+            IAgendamentoRepository agendamentoRepository)
         {
             _atendimentoRepository = atendimentoRepository;
             _medicoRepository = medicoRepository;
             _pacienteRepository = pacienteRepository;
+            _documentoRepository = documentoRepository;
+            _agendamentoRepository = agendamentoRepository;
         }
 
         public void Cadastrar(CadastroAtendimentoRequest request, Guid codigoUsuario, Guid codigoParceiro)
@@ -93,6 +103,20 @@ namespace Application.Services
             atendimento.DtSituacao = DateTime.Now;
 
             _atendimentoRepository.Atualizar(atendimento);
+        }
+
+        public ObterAtendimentoResponse ObterRelacionamentos(Guid codigoAtendimento)
+        {
+            var atendimento = _atendimentoRepository.ObterAtendimento(codigoAtendimento);
+
+            var documentos = _documentoRepository.ObterDocumentosPorCodigoEntidade(codigoAtendimento);
+
+            var agendamentos = _agendamentoRepository.ObterAgendamentosPorAtendimento(codigoAtendimento);
+
+            return new ObterAtendimentoResponse
+            {
+
+            };
         }
     }
 }

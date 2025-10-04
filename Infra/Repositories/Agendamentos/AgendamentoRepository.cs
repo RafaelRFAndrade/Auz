@@ -119,10 +119,25 @@ namespace Infra.Repositories.Agendamentos
                 INNER JOIN Atendimento AS ate on Ate.Codigo = @p0
                 INNER JOIN Atendimento AS Ate2 on ate2.CodigoMedico = ate.CodigoMedico
                 WHERE age.CodigoAtendimento = ate2.Codigo AND age.DtAgendamento BETWEEN @p1 AND @p2 
-                AND Situacao = @p3
+                AND age.Situacao = @p3
                 """;
 
             return Database.SqlQueryRaw<CountRawQuery>(sql, codigoAtendimento, dataAgendamento.AddHours(-1), dataAgendamento.AddHours(1), Situacao.Ativo).FirstOrDefault().Count > 0;
+        }
+
+        public List<ObterAgendamentosPorAtendimentoRawQuery> ObterAgendamentosPorAtendimento(Guid codigoAtendimento)
+        {
+            const string sql =
+                """
+                SELECT 
+                    Descricao, DtAgendamento, Situacao 
+                FROM 
+                    Agendamento 
+                WHERE 
+                    CodigoAtendimento = @p0      
+                """;
+
+            return Database.SqlQueryRaw<ObterAgendamentosPorAtendimentoRawQuery>(sql, codigoAtendimento).ToList();
         }
     }
 }

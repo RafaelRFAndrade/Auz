@@ -14,5 +14,6 @@ namespace Infra.Repositories.Atendimentos
         void Deletar(Atendimento atendimento);
         Atendimento Obter(Guid codigoAtendimento);
         void Atualizar(Atendimento atendimento);
+        ObterAtendimentoRawQuery ObterAtendimento(Guid codigoAtendimento);
     }
 }

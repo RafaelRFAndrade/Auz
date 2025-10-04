@@ -10,5 +10,6 @@ namespace Infra.Repositories.Agendamentos
         List<AgendamentoRawQueryResult> ObterAgendamentosPorParceiro(Guid codigoParceiro, DateTime diaInicial);
         CountRawQuery ObterQtdAgendamentosPorParceiro(Guid codigoParceiro, DateTime diaInicial);
         bool VerificarDisponibilidade(Guid codigoAtendimento, DateTime dataAgendamento);
+        List<ObterAgendamentosPorAtendimentoRawQuery> ObterAgendamentosPorAtendimento(Guid codigoAtendimento);
     }
 }

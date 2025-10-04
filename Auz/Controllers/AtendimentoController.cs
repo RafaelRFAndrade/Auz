@@ -91,5 +91,30 @@ namespace Web.Controllers
                 return StatusCode(500, new { Sucesso = false, Mensagem = "Ocorreu um erro na requisição." });
             }
         }
+
+        [HttpGet("{codigo}")]
+        [Authorize]
+        public IActionResult Obter([FromQuery] Guid codigo)
+        {
+            try
+            {
+                var codigoUsuario = ObterCodigoUsuario();
+
+                var codigoParceiro = ObterCodigoParceiro();
+
+                var atendimentos = _atendimentoService.ObterRelacionamentos(codigo);
+
+                return Ok(atendimentos);
+            }
+            catch (AuzException ex)
+            {
+                return BadRequest(new { Sucesso = false, Mensagem = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return StatusCode(500, new { Sucesso = false, Mensagem = "Ocorreu um erro na requisição." });
+            }
+        }
     }
 }
