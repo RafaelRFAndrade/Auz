@@ -32,6 +32,7 @@ COPY Auz/*.csproj ./Auz/
 COPY Domain/*.csproj ./Domain/
 COPY Application/*.csproj ./Application/
 COPY Infra/*.csproj ./Infra/
+COPY Test/*.csproj ./Test/
 
 # Restaurar pacotes
 RUN dotnet restore
