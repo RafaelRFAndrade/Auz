@@ -18,6 +18,8 @@ using Infra.Repositories.Parceiro;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Infra.Repositories.Documentos;
+using Infra.RawQueryResult;
+using Application.Messaging.Response.Atendimento;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -85,6 +87,7 @@ builder.Services.AddTransient<IPacienteService, PacienteService>();
 builder.Services.AddTransient<IMedicoService, MedicoService>();
 builder.Services.AddTransient<IAgendamentoService, AgendamentoService>();
 builder.Services.AddTransient<IAwsService, AwsService>();
+builder.Services.AddTransient<IDocumentoService, DocumentoService>();
 
 builder.Services.AddDbContext<RepositoryBase>(options =>
     options.UseSqlServer(
@@ -97,6 +100,7 @@ builder.Services.AddAutoMapper(config => {
         //.ForAllMembers(opts => opts.Condition((src, dest, srcMember) =>
         //    srcMember != null)); // Só atualiza propriedades não nulas
     config.CreateMap<AtualizarPacienteRequest, Paciente>();
+    config.CreateMap<ObterAtendimentoRawQuery, ObterAtendimentoResponse>();
 });
 
 builder.Services.AddAuthentication(options =>

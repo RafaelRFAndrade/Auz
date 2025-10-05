@@ -1,14 +1,11 @@
 ﻿using Application.Interfaces;
 using Application.Messaging.Exception;
-using Application.Messaging.Request;
 using Application.Messaging.Request.Usuario;
-using Application.Messaging.Response;
 using Application.Messaging.Response.Usuario;
 using Domain.Entidades;
 using Domain.Enums;
 using Infra.Repositories.Agendamentos;
 using Infra.Repositories.Atendimentos;
-using Infra.Repositories.Documentos;
 using Infra.Repositories.Parceiro;
 using Infra.Repositories.Usuarios;
 using Microsoft.AspNetCore.Identity;
@@ -23,24 +20,18 @@ namespace Application.Services
         private readonly IAgendamentoRepository _agendamentoRepository;
         private readonly IAtendimentoRepository _atendimentoRepository;
         private readonly IParceiroRepository _parceiroRepository;
-        private readonly IAwsService _awsService;
-        private readonly IDocumentoRepository _documentoRepository;
 
         public UsuarioService(IUsuarioRepository usuarioRepository,
             IAutenticacaoService autenticacaoService,
             IAtendimentoRepository atendimentoRepository,
             IAgendamentoRepository agendamentoRepository,
-            IParceiroRepository parceiroRepository,
-            IAwsService awsService,
-            IDocumentoRepository documentoRepository)
+            IParceiroRepository parceiroRepository)
         {
             _usuarioRepository = usuarioRepository;
             _autenticacaoService = autenticacaoService;
             _agendamentoRepository = agendamentoRepository;
             _atendimentoRepository = atendimentoRepository;
             _parceiroRepository = parceiroRepository;
-            _awsService = awsService;
-            _documentoRepository = documentoRepository;
         }
 
         public void Cadastrar(CadastroUsuarioRequest request)
@@ -133,41 +124,6 @@ namespace Application.Services
                 TotalPaginas = total == 0 ? 25 : total,
                 Itens = totalizador.Count
             };
-        }
-
-        public async Task<ResponseBase> InserirDocumento(UploadDocumentoRequest uploadDocumentoRequest, Guid codigoUsuario)
-        {
-            try
-            {
-                var fileBytes = Convert.FromBase64String(uploadDocumentoRequest.Base64Content);
-
-                var contentType = uploadDocumentoRequest.ContentType ?? "application/octet-stream";
-
-                var url = await _awsService.UploadFileAsync(fileBytes, uploadDocumentoRequest.FileName, contentType, "Documentos");
-
-                var documento = new Documento
-                {
-                    TipoEntidade = "Usuario",
-                    CodigoEntidade = uploadDocumentoRequest.CodigoEntidade,
-                    NomeArquivo = uploadDocumentoRequest.FileName,
-                    CaminhoS3 = url,
-                    Bucket = "auzys-documentos",
-                    TipoConteudo = uploadDocumentoRequest.ContentType,
-                    TamanhoBytes = fileBytes.Length,
-                    UsuarioUpload = codigoUsuario,
-                };
-
-                _documentoRepository.Inserir(documento);
-
-                return new ResponseBase
-                {
-                    Sucesso = true
-                };
-            }
-            catch (Exception ex)
-            {
-                throw; // Por algum motivo esse maravilha não ta estourando exception sem isso 
-            }
         }
     }
 }

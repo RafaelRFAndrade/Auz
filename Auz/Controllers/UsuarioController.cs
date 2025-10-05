@@ -1,9 +1,7 @@
 ﻿using Application.Interfaces;
 using Application.Messaging.Exception;
 using Application.Messaging.Request;
-using Application.Messaging.Request.Atendimento;
 using Application.Messaging.Request.Usuario;
-using Application.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Web.Controllers.Base;
@@ -17,14 +15,17 @@ namespace Web.Controllers
         private readonly ILogger<UsuarioController> _logger;
         private readonly IUsuarioService _usuarioService;
         private readonly IAutenticacaoService _autenticacaoService;
+        private readonly IDocumentoService _documentoService;
 
         public UsuarioController(ILogger<UsuarioController> logger,
             IUsuarioService usuarioService,
-            IAutenticacaoService autenticacaoService)
+            IAutenticacaoService autenticacaoService,
+            IDocumentoService documentoService)
         {
             _logger = logger;
             _usuarioService = usuarioService;
             _autenticacaoService = autenticacaoService;
+            _documentoService = documentoService;
         }
 
         [Authorize]
@@ -144,7 +145,7 @@ namespace Web.Controllers
             {
                 var codigoUsuario = ObterCodigoUsuario();
 
-                var response = await _usuarioService.InserirDocumento(request, codigoUsuario);
+                var response = await _documentoService.InserirDocumento(request, codigoUsuario, Domain.Enums.TipoEntidadeUpload.Usuario);
 
                 return Ok(response);
             }

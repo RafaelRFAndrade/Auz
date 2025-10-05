@@ -2,9 +2,8 @@
 using Application.Messaging.Exception;
 using Application.Messaging.Request.Atendimento;
 using Application.Messaging.Response.Atendimento;
-using Application.Messaging.Response.Paciente;
+using AutoMapper;
 using Domain.Entidades;
-using Infra.RawQueryResult;
 using Infra.Repositories.Agendamentos;
 using Infra.Repositories.Atendimentos;
 using Infra.Repositories.Documentos;
@@ -19,19 +18,22 @@ namespace Application.Services
         private readonly IMedicoRepository _medicoRepository;
         private readonly IPacienteRepository _pacienteRepository;
         private readonly IDocumentoRepository _documentoRepository;
-        private readonly IAgendamentoRepository _agendamentoRepository;  
+        private readonly IAgendamentoRepository _agendamentoRepository;
+        private readonly IMapper _mapper;
 
         public AtendimentoService(IAtendimentoRepository atendimentoRepository,
             IMedicoRepository medicoRepository,
             IPacienteRepository pacienteRepository,
             IDocumentoRepository documentoRepository,
-            IAgendamentoRepository agendamentoRepository)
+            IAgendamentoRepository agendamentoRepository,
+            IMapper mapper)
         {
             _atendimentoRepository = atendimentoRepository;
             _medicoRepository = medicoRepository;
             _pacienteRepository = pacienteRepository;
             _documentoRepository = documentoRepository;
             _agendamentoRepository = agendamentoRepository;
+            _mapper = mapper;
         }
 
         public void Cadastrar(CadastroAtendimentoRequest request, Guid codigoUsuario, Guid codigoParceiro)
@@ -113,10 +115,14 @@ namespace Application.Services
 
             var agendamentos = _agendamentoRepository.ObterAgendamentosPorAtendimento(codigoAtendimento);
 
-            return new ObterAtendimentoResponse
-            {
+            var response = new ObterAtendimentoResponse();
 
-            };
+            _mapper.Map(atendimento, response);
+
+            response.Agendamentos = agendamentos;
+            response.Documentos = documentos;
+
+            return response;
         }
     }
 }

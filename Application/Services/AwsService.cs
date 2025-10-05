@@ -55,5 +55,31 @@ namespace Application.Services
 
             return $"https://{_bucketName}.s3.{_s3Client.Config.RegionEndpoint.SystemName}.amazonaws.com/{key}";
         }
+
+        /// <summary>
+        /// Baixa um arquivo do S3 a partir do caminho completo (URL ou key do bucket).
+        /// </summary>
+        public async Task<byte[]> GetFileAsync(string filePath)
+        {
+            // Se o usuário passar a URL completa, extrai apenas o "key" (caminho relativo dentro do bucket)
+            var key = filePath;
+            if (filePath.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+            {
+                var uri = new Uri(filePath);
+                key = uri.AbsolutePath.TrimStart('/'); // remove o "/"
+            }
+
+            var request = new GetObjectRequest
+            {
+                BucketName = _bucketName,
+                Key = key
+            };
+
+            using var response = await _s3Client.GetObjectAsync(request);
+            using var memoryStream = new MemoryStream();
+            await response.ResponseStream.CopyToAsync(memoryStream);
+
+            return memoryStream.ToArray();
+        }
     }
 }
