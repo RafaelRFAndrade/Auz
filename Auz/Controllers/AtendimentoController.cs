@@ -1,4 +1,5 @@
-﻿using Application.Interfaces;
+﻿using Amazon.S3;
+using Application.Interfaces;
 using Application.Messaging.Exception;
 using Application.Messaging.Request;
 using Application.Messaging.Request.Atendimento;
@@ -132,6 +133,31 @@ namespace Web.Controllers
                 var response = await _documentoService.InserirDocumento(request, codigoUsuario, Domain.Enums.TipoEntidadeUpload.Atendimento);
 
                 return Ok(response);
+            }
+            catch (AuzException ex)
+            {
+                return BadRequest(new { Sucesso = false, Mensagem = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return StatusCode(500, new { Sucesso = false, Mensagem = "Ocorreu um erro na requisição." });
+            }
+        }
+
+        [HttpGet("Documento")]
+        [Authorize]
+        public async Task<IActionResult> GetDocumento([FromQuery] Guid codigoDocumento)
+        {
+            try
+            {
+                var dadosDocumento = await _documentoService.ObterDocumento(codigoDocumento);
+                var contentType = dadosDocumento.DadosDocumento.TipoConteudo; 
+                return File(dadosDocumento.Documento, contentType, dadosDocumento.DadosDocumento.NomeArquivo);
+            }
+            catch (AmazonS3Exception ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                return NotFound(new { Sucesso = false, Mensagem = "Arquivo não encontrado." });
             }
             catch (AuzException ex)
             {

@@ -1,6 +1,7 @@
 ﻿using Application.Interfaces;
 using Application.Messaging.Request;
 using Application.Messaging.Response;
+using Application.Messaging.Response.Documento;
 using Domain.Entidades;
 using Domain.Enums;
 using Infra.Repositories.Documentos;
@@ -53,6 +54,19 @@ namespace Application.Services
                 throw; // Por algum motivo esse maravilha não ta estourando exception sem isso 
             }
         }
+
+        public async Task<DadosDocumentoResponse> ObterDocumento(Guid codigoDocumento)
+        {
+            var dadosDocumento = _documentoRepository.ObterCaminhoPorCodigo(codigoDocumento);
+
+            var documento = await _awsService.GetFileAsync(dadosDocumento.CaminhoS3);
+
+            return new DadosDocumentoResponse 
+            { 
+                DadosDocumento = dadosDocumento,
+                Documento = documento
+            };
+        } 
 
         private string ObterNomeEntidade(TipoEntidadeUpload tipoEntidadeUpload)
         {

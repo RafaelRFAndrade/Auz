@@ -173,5 +173,24 @@ namespace Infra.Repositories.Atendimentos
 
             return Database.SqlQueryRaw<ObterAtendimentoRawQuery>(sql, codigoAtendimento).FirstOrDefault();
         }
+
+        public List<ListarAtendimentosPorMedicoRawQuery> ListarAtendimentosPorMedico(Guid codigoMedico)
+        {
+            const string sql =
+                """
+                    SELECT
+                        ate.Codigo AS 'CodigoAtendimento',
+                	    ate.DtInclusao,
+                	    ate.DtSituacao,
+                	    ate.Descricao
+                    FROM 
+                	    dbo.Atendimento AS ate WITH(NOLOCK)
+                    WHERE 
+                        ate.CodigoMedico = @p0 AND ate.Situacao = @p1
+                    ORDER BY ate.DtInclusao DESC
+                """;
+
+            return Database.SqlQueryRaw<ListarAtendimentosPorMedicoRawQuery>(sql, codigoMedico, Situacao.Ativo).ToList();
+        }
     }
 }

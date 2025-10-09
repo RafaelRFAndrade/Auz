@@ -7,5 +7,6 @@ namespace Infra.Repositories.Documentos
     {
         void Inserir(Documento documento);
         List<DocumentoRawQuery> ObterDocumentosPorCodigoEntidade(Guid codigoEntidade);
+        ObterDadosDocumentoRawQuery ObterCaminhoPorCodigo(Guid codigoDocumento);
     }
 }

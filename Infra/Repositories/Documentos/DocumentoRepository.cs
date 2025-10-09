@@ -36,5 +36,23 @@ namespace Infra.Repositories.Documentos
 
             return Database.SqlQueryRaw<DocumentoRawQuery>(sql, codigoEntidade).ToList();
         }
+
+        public ObterDadosDocumentoRawQuery ObterCaminhoPorCodigo(Guid codigoDocumento)
+        {
+            const string sql =
+               """
+                SELECT 
+                    do.NomeArquivo,
+                    do.CaminhoS3,
+                    do.TipoConteudo
+                FROM 
+                    Documento AS do WITH(NOLOCK) 
+                WHERE 
+                    do.Codigo = @p0
+                """;
+
+            return Database.SqlQueryRaw<ObterDadosDocumentoRawQuery>(sql, codigoDocumento).FirstOrDefault();
+        }
+
     }
 }

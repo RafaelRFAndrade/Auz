@@ -15,5 +15,6 @@ namespace Infra.Repositories.Atendimentos
         Atendimento Obter(Guid codigoAtendimento);
         void Atualizar(Atendimento atendimento);
         ObterAtendimentoRawQuery ObterAtendimento(Guid codigoAtendimento);
+        List<ListarAtendimentosPorMedicoRawQuery> ListarAtendimentosPorMedico(Guid codigoMedico);
     }
 }

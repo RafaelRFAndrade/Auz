@@ -60,14 +60,19 @@ namespace Application.Services
             };
         }
 
-        public Medico Obter(Guid codigoMedico, Guid codigoUsuario)
+        public Medico Obter(Guid codigoMedico, Guid codigoUsuario) => _medicoRepository.Obter(codigoMedico);
+
+        public ObterMedicoDetalhadoResponse ObterMedicoDetalhado(Guid codigoMedico)
         {
-            var medico = _medicoRepository.Obter(codigoMedico);
+            var medico = _medicoRepository.Obter(codigoMedico) ?? throw new AuzException("Médico não encontrado.");
 
-            if (medico.CodigoUsuario != codigoUsuario)
-                throw new AuzException("Usuário não tem permissão para vizualizar esse médico");
+            var atendimentos = _atendimentoRepository.ListarAtendimentosPorMedico(codigoMedico);
 
-            return medico;
+            return new ObterMedicoDetalhadoResponse
+            {
+                Medico = medico, 
+                Atendimentos = atendimentos
+            };
         }
 
         public void Atualizar(AtualizarMedicoRequest request, Guid codigoUsuario)
@@ -76,9 +81,6 @@ namespace Application.Services
 
             var medico = _medicoRepository.Obter(request.Codigo) ??
                 throw new AuzException("Médico não encontrado");
-
-            if (medico.CodigoUsuario != codigoUsuario)
-                throw new AuzException("Usuário não possuí permissão para alterar o médico");
 
             if (medico.DocumentoFederal != request.DocumentoFederal)
                 throw new AuzException("Não é possível alterar o documento federal.");
@@ -94,9 +96,6 @@ namespace Application.Services
         {
             var medico = _medicoRepository.Obter(request.CodigoMedico) ??
                 throw new AuzException("Médico não encontrado");
-
-            if (medico.CodigoUsuario != codigoUsuario)
-                throw new AuzException("Usuário não possuí permissão para alterar o médico");
 
             if(_atendimentoRepository.ValidarAtendimentoAtivosPorMedico(medico.Codigo))
                 throw new AuzException("Médico possuí atendimentos em andamento");

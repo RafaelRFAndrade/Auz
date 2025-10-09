@@ -35,5 +35,16 @@ namespace Domain.Entidades
 
         [StringLength(11)]
         public string? DocumentoFederal { get; set; }
+
+        [StringLength(50)]
+        public string? Especialidade { get; set; }
+
+        public int? DiasAtendimento { get; set; }
+
+        [StringLength(50)]
+        public string? TipoContrato { get; set; }
+
+        [Column(TypeName = "decimal(13,2)")]
+        public decimal? ValorConsulta { get; set; }
     }
 }
