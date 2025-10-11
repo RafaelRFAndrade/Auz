@@ -101,6 +101,7 @@ builder.Services.AddAutoMapper(config => {
         //    srcMember != null)); // Só atualiza propriedades não nulas
     config.CreateMap<AtualizarPacienteRequest, Paciente>();
     config.CreateMap<ObterAtendimentoRawQuery, ObterAtendimentoResponse>();
+    config.CreateMap<AtualizarCompletoRequest, Medico>();
 });
 
 builder.Services.AddAuthentication(options =>

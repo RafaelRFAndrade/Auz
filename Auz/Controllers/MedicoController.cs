@@ -115,6 +115,29 @@ namespace Web.Controllers
         }
 
         [Authorize]
+        [HttpPut("Completo")]
+        public IActionResult AtualizarCompleto(AtualizarCompletoRequest request)
+        {
+            try
+            {
+                var codigoUsuario = ObterCodigoUsuario();
+
+                _medicoService.AtualizarCompleto(request, codigoUsuario);
+
+                return Ok();
+            }
+            catch (AuzException ex)
+            {
+                return BadRequest(new { Sucesso = false, Mensagem = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return StatusCode(500, new { Sucesso = false, Mensagem = "Ocorreu um erro na requisição." });
+            }
+        }
+
+        [Authorize]
         [HttpDelete]
         public IActionResult Desativar(DesativarMedicoRequest request)
         {

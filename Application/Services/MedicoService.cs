@@ -92,6 +92,23 @@ namespace Application.Services
             _medicoRepository.Atualizar(medico);
         }
 
+        public void AtualizarCompleto(AtualizarCompletoRequest request, Guid codigoUsuario)
+        {
+            request.Validar();
+
+            var medico = _medicoRepository.Obter(request.Codigo) ??
+                throw new AuzException("Médico não encontrado");
+
+            if (medico.DocumentoFederal != request.DocumentoFederal)
+                throw new AuzException("Não é possível alterar o documento federal.");
+
+            _mapper.Map(request, medico);
+
+            medico.DtSituacao = DateTime.Now;
+
+            _medicoRepository.Atualizar(medico);
+        }
+
         public void Desativar(DesativarMedicoRequest request, Guid codigoUsuario)
         {
             var medico = _medicoRepository.Obter(request.CodigoMedico) ??

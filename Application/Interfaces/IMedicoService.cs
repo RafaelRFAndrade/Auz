@@ -16,5 +16,6 @@ namespace Application.Interfaces
         Medico ObterPorDocumento(string documentoFederal, Guid codigoParceiro);
         List<ListarDocumentosRawQuery> BuscarDocumentos(string documentoFederal, Guid codigoParceiro);
         ObterMedicoDetalhadoResponse ObterMedicoDetalhado(Guid codigoMedico);
+        void AtualizarCompleto(AtualizarCompletoRequest request, Guid codigoUsuario);
     }
 }

@@ -39,7 +39,7 @@ namespace Domain.Entidades
         [StringLength(50)]
         public string? Especialidade { get; set; }
 
-        public int? DiasAtendimento { get; set; }
+        public DiasAtendimento? DiasAtendimento { get; set; }
 
         [StringLength(50)]
         public string? TipoContrato { get; set; }
