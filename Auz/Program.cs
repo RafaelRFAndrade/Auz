@@ -20,18 +20,18 @@ using System.Text.Json.Serialization;
 using Infra.Repositories.Documentos;
 using Infra.RawQueryResult;
 using Application.Messaging.Response.Atendimento;
+using Microsoft.AspNetCore.Http.Features;
 
 var builder = WebApplication.CreateBuilder(args);
 
 TimeZoneInfo.ClearCachedData();
-var brasiliaTimeZone = TimeZoneInfo.FindSystemTimeZoneById("E. South America Standard Time");
 
 builder.Services.AddControllers().AddJsonOptions(options =>
 {
     options.JsonSerializerOptions.Converters.Add(new DateTimeJsonConverter());
     options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
     options.JsonSerializerOptions.WriteIndented = true;
-}); 
+});
 
 builder.Services.AddEndpointsApiExplorer();
 
@@ -43,7 +43,6 @@ builder.Services.AddSwaggerGen(c =>
         Version = "v1"
     });
 
-    // Configuração para permitir JWT via Swagger
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -68,6 +67,8 @@ builder.Services.AddSwaggerGen(c =>
             new string[] {}
         }
     });
+
+    c.OperationFilter<FileUploadOperationFilter>();
 });
 
 //Repos
@@ -97,11 +98,26 @@ builder.Services.AddDbContext<RepositoryBase>(options =>
 
 builder.Services.AddAutoMapper(config => {
     config.CreateMap<AtualizarMedicoRequest, Medico>();
-        //.ForAllMembers(opts => opts.Condition((src, dest, srcMember) =>
-        //    srcMember != null)); // Só atualiza propriedades não nulas
     config.CreateMap<AtualizarPacienteRequest, Paciente>();
     config.CreateMap<ObterAtendimentoRawQuery, ObterAtendimentoResponse>();
     config.CreateMap<AtualizarCompletoRequest, Medico>();
+});
+
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.MultipartBodyLengthLimit = 104857600; 
+    options.ValueLengthLimit = 104857600; 
+    options.MemoryBufferThreshold = 2097152;
+    options.MultipartBoundaryLengthLimit = 128;
+    options.MultipartHeadersCountLimit = 16;
+    options.MultipartHeadersLengthLimit = 16384;
+});
+
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Limits.MaxRequestBodySize = 104857600; 
+    options.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(10);
+    options.Limits.RequestHeadersTimeout = TimeSpan.FromMinutes(5);
 });
 
 builder.Services.AddAuthentication(options =>
@@ -109,19 +125,19 @@ builder.Services.AddAuthentication(options =>
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 })
-       .AddJwtBearer(options =>
-       {
-           options.TokenValidationParameters = new TokenValidationParameters
-           {
-               ValidateIssuer = true,
-               ValidateAudience = true,
-               ValidateLifetime = true,
-               ValidateIssuerSigningKey = true,
-               ValidIssuer = builder.Configuration["Jwt:Issuer"],
-               ValidAudience = builder.Configuration["Jwt:Audience"],
-               IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
-           };
-       });
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+        ValidAudience = builder.Configuration["Jwt:Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+    };
+});
 
 builder.Services.AddCors(options =>
 {
@@ -134,20 +150,14 @@ builder.Services.AddCors(options =>
         });
 });
 
-
-
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
 app.UseCors("AllowSpecificOrigin");
 
-//if (app.Environment.IsDevelopment())
-//{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-//}
-
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
 

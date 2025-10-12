@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Domain.Enums;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Domain.Entidades
@@ -40,5 +41,7 @@ namespace Domain.Entidades
 
         [Required]
         public DateTime DataUpload { get; set; } = DateTime.Now;
+
+        public TipoDocumento? TipoDocumento { get; set; }
     }
 }

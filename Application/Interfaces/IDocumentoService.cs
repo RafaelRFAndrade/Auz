@@ -7,7 +7,8 @@ namespace Application.Interfaces
 {
     public interface IDocumentoService
     {
-        Task<ResponseBase> InserirDocumento(UploadDocumentoRequest uploadDocumentoRequest, Guid codigoUsuario, TipoEntidadeUpload tipoEntidadeUpload);
+        Task<ResponseBase> InserirDocumento(UploadDocumentoRequest uploadDocumentoRequest, Guid codigoUsuario, TipoEntidadeUpload tipoEntidadeUpload, TipoDocumento tipoDocumento);
         Task<DadosDocumentoResponse> ObterDocumento(Guid codigoDocumento);
+        Task<DadosDocumentoResponse> ObterFotoPerfil(Guid codigoEntidade);
     }
 }

@@ -20,26 +20,30 @@ namespace Application.Services
             _documentoRepository = documentoRepository;
         }
 
-        public async Task<ResponseBase> InserirDocumento(UploadDocumentoRequest uploadDocumentoRequest, Guid codigoUsuario, TipoEntidadeUpload tipoEntidadeUpload)
+        public async Task<ResponseBase> InserirDocumento(UploadDocumentoRequest uploadDocumentoRequest, Guid codigoUsuario, TipoEntidadeUpload tipoEntidadeUpload, TipoDocumento tipoDocumento)
         {
             try
             {
-                var fileBytes = Convert.FromBase64String(uploadDocumentoRequest.Base64Content);
+                using var ms = new MemoryStream();
 
-                var contentType = uploadDocumentoRequest.ContentType ?? "application/octet-stream";
+                await uploadDocumentoRequest.File.CopyToAsync(ms);
+                var fileBytes = ms.ToArray();
 
-                var url = await _awsService.UploadFileAsync(fileBytes, uploadDocumentoRequest.FileName, contentType, ObterCaminhoFolder(tipoEntidadeUpload));
+                var contentType = uploadDocumentoRequest.File.ContentType ?? "application/octet-stream";
+
+                var url = await _awsService.UploadFileAsync(fileBytes, uploadDocumentoRequest.File.FileName, contentType, ObterCaminhoFolder(tipoEntidadeUpload));
 
                 var documento = new Documento
                 {
                     TipoEntidade = ObterNomeEntidade(tipoEntidadeUpload),
                     CodigoEntidade = uploadDocumentoRequest.CodigoEntidade,
-                    NomeArquivo = uploadDocumentoRequest.FileName,
+                    NomeArquivo = uploadDocumentoRequest.File.FileName,
                     CaminhoS3 = url,
                     Bucket = "auzys-documentos",
-                    TipoConteudo = uploadDocumentoRequest.ContentType,
+                    TipoConteudo = contentType,
                     TamanhoBytes = fileBytes.Length,
                     UsuarioUpload = codigoUsuario,
+                    TipoDocumento = tipoDocumento
                 };
 
                 _documentoRepository.Inserir(documento);
@@ -68,12 +72,26 @@ namespace Application.Services
             };
         } 
 
+        public async Task<DadosDocumentoResponse> ObterFotoPerfil(Guid codigoEntidade)
+        {
+            var dadosDocumento = _documentoRepository.ObterCaminhoPorEntidade(codigoEntidade, TipoDocumento.FotoPerfil);
+
+            var fotoPerfil = dadosDocumento is not null ? await _awsService.GetFileAsync(dadosDocumento.CaminhoS3) : null;
+
+            return new DadosDocumentoResponse
+            {
+                DadosDocumento = dadosDocumento,
+                Documento = fotoPerfil
+            };
+        }
+
         private string ObterNomeEntidade(TipoEntidadeUpload tipoEntidadeUpload)
         {
             return tipoEntidadeUpload switch
             {
                 TipoEntidadeUpload.Usuario => "Usuario",
                 TipoEntidadeUpload.Atendimento => "Atendimento",
+                TipoEntidadeUpload.Perfil => "Perfil",
                 _ => String.Empty,
             };
         }
@@ -84,6 +102,7 @@ namespace Application.Services
             {
                 TipoEntidadeUpload.Usuario => "Documentos",
                 TipoEntidadeUpload.Atendimento => "Atendimentos",
+                TipoEntidadeUpload.Perfil => "Perfil",
                 _ => String.Empty,
             };
         }

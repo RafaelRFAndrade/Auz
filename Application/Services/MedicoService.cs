@@ -17,7 +17,9 @@ namespace Application.Services
         private readonly IMapper _mapper;
         private readonly IAtendimentoRepository _atendimentoRepository;
 
-        public MedicoService(IMedicoRepository medicoRepository, IMapper mapper, IAtendimentoRepository atendimentoRepository)
+        public MedicoService(IMedicoRepository medicoRepository, 
+            IMapper mapper,
+            IAtendimentoRepository atendimentoRepository)
         {
             _medicoRepository = medicoRepository;
             _mapper = mapper;

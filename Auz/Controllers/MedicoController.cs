@@ -1,4 +1,5 @@
-﻿using Application.Interfaces;
+﻿using Amazon.S3;
+using Application.Interfaces;
 using Application.Messaging.Exception;
 using Application.Messaging.Request;
 using Application.Messaging.Request.Medico;
@@ -15,11 +16,15 @@ namespace Web.Controllers
     {
         private readonly ILogger<MedicoController> _logger;
         private readonly IMedicoService _medicoService;
+        private readonly IDocumentoService _documentoService;
 
-        public MedicoController(ILogger<MedicoController> logger, IMedicoService medicoService)
+        public MedicoController(ILogger<MedicoController> logger,
+            IMedicoService medicoService,
+            IDocumentoService documentoService)
         {
             _logger = logger;
             _medicoService = medicoService;
+            _documentoService = documentoService;
         }
 
         [Authorize]
@@ -217,6 +222,59 @@ namespace Web.Controllers
                 var response = _medicoService.ObterMedicoDetalhado(codigoMedico);
 
                 return Ok(response);
+            }
+            catch (AuzException ex)
+            {
+                return BadRequest(new { Sucesso = false, Mensagem = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return StatusCode(500, new { Sucesso = false, Mensagem = "Ocorreu um erro na requisição." });
+            }
+        }
+
+        [HttpPost("FotoDePerfil")]
+        [Authorize]
+        public async Task<IActionResult> Upload([FromForm] UploadDocumentoRequest request)
+        {
+            try
+            {
+                var codigoUsuario = ObterCodigoUsuario();
+
+                var response = await _documentoService.InserirDocumento(request, codigoUsuario, Domain.Enums.TipoEntidadeUpload.Perfil, Domain.Enums.TipoDocumento.FotoPerfil);
+
+                return Ok(response);
+            }
+            catch (AuzException ex)
+            {
+                return BadRequest(new { Sucesso = false, Mensagem = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return StatusCode(500, new { Sucesso = false, Mensagem = "Ocorreu um erro na requisição." });
+            }
+        }
+
+        [HttpGet("FotoDePerfil")]
+        [Authorize]
+        public async Task<IActionResult> GetDocumento([FromQuery] Guid codigoOperador)
+        {
+            try
+            {
+                var dadosDocumento = await _documentoService.ObterFotoPerfil(codigoOperador);
+
+                if (dadosDocumento.Documento is null)
+                    return NotFound();
+
+                var contentType = dadosDocumento.DadosDocumento.TipoConteudo;
+
+                return File(dadosDocumento.Documento, contentType, dadosDocumento.DadosDocumento.NomeArquivo);
+            }
+            catch (AmazonS3Exception ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                return NotFound(new { Sucesso = false, Mensagem = "Arquivo não encontrado." });
             }
             catch (AuzException ex)
             {

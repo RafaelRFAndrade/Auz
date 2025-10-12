@@ -1,4 +1,5 @@
 ﻿using Domain.Entidades;
+using Domain.Enums;
 using Infra.RawQueryResult;
 
 namespace Infra.Repositories.Documentos
@@ -8,5 +9,6 @@ namespace Infra.Repositories.Documentos
         void Inserir(Documento documento);
         List<DocumentoRawQuery> ObterDocumentosPorCodigoEntidade(Guid codigoEntidade);
         ObterDadosDocumentoRawQuery ObterCaminhoPorCodigo(Guid codigoDocumento);
+        ObterDadosDocumentoRawQuery ObterCaminhoPorEntidade(Guid codigoDocumento, TipoDocumento tipoDocumento);
     }
 }

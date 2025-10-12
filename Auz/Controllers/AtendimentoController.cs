@@ -124,13 +124,14 @@ namespace Web.Controllers
 
         [HttpPost("Documento")]
         [Authorize]
-        public async Task<IActionResult> Upload(UploadDocumentoRequest request)
+        [RequestSizeLimit(long.MaxValue)]
+        public async Task<IActionResult> Upload([FromForm]UploadDocumentoRequest request)
         {
             try
             {
                 var codigoUsuario = ObterCodigoUsuario();
 
-                var response = await _documentoService.InserirDocumento(request, codigoUsuario, Domain.Enums.TipoEntidadeUpload.Atendimento);
+                var response = await _documentoService.InserirDocumento(request, codigoUsuario, Domain.Enums.TipoEntidadeUpload.Atendimento, Domain.Enums.TipoDocumento.Documento);
 
                 return Ok(response);
             }

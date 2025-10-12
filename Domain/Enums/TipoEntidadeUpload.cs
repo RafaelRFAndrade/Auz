@@ -3,6 +3,7 @@
     public enum TipoEntidadeUpload
     {
         Usuario,
-        Atendimento
+        Atendimento,
+        Perfil
     }
 }
