@@ -361,3 +361,25 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# Environment variables and sensitive configuration files
+.env
+.env.local
+.env.development
+.env.production
+.env.staging
+appsettings.*.json
+!appsettings.json
+!appsettings.Development.json
+secrets.json
+user-secrets.json
+
+# Azure and cloud configuration
+*.publishsettings
+*.azurePubxml
+*.pubxml
+*.publishproj
+
+# Database connection strings and sensitive data
+connectionstrings.json
+secrets.json
