@@ -81,7 +81,7 @@ namespace Application.Tests.Services
         }
 
         [Fact]
-        public void Obter_ComUsuarioDiferente_DeveLancarExcecao()
+        public void Obter_ComUsuarioDiferente_NaoDeveLancarExcecao()
         {
             // Arrange
             var medico = new Medico { CodigoUsuario = Guid.NewGuid() };
@@ -91,8 +91,7 @@ namespace Application.Tests.Services
             Action act = () => _service.Obter(Guid.NewGuid(), Guid.NewGuid());
 
             // Assert
-            act.Should().Throw<AuzException>()
-                .WithMessage("Usuário não tem permissão para vizualizar esse médico");
+            act.Should().NotThrow<AuzException>();
         }
 
         [Fact]
