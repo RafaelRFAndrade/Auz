@@ -50,6 +50,11 @@ jobs:
       with:
         projectBaseDir: .
         args: >
+          -Dsonar.projectKey=RafaelRFAndrade_Auz
+          -Dsonar.organization=rafaelrfandrade
+          -Dsonar.projectName=Auz API
+          -Dsonar.projectVersion=1.0.0
+          -Dsonar.sources=Auz,Application,Domain,Infra
           -Dsonar.cs.opencover.reportsPaths=./coverage/report/SonarQube.xml
           -Dsonar.coverage.exclusions=**/Test/**,**/bin/**,**/obj/**,**/Program.cs
           -Dsonar.exclusions=**/bin/**,**/obj/**,**/Test/**,**/scripts/**,**/*.csproj,**/*.sln,**/Dockerfile*,**/aws/**,**/.github/**,**/.sonarqube/**
@@ -57,6 +62,7 @@ jobs:
           -Dsonar.ci.automaticAnalysis=false
           -Dsonar.ci.branch.name=${{ github.ref_name }}
           -Dsonar.ci.branch.target=${{ github.base_ref }}
+          -Dsonar.sourceEncoding=UTF-8
 
   quality-gate:
     name: Quality Gate
@@ -73,6 +79,9 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       with:
+        projectBaseDir: .
         args: >
+          -Dsonar.projectKey=RafaelRFAndrade_Auz
+          -Dsonar.organization=rafaelrfandrade
           -Dsonar.qualitygate.wait=true
           -Dsonar.ci.automaticAnalysis=false

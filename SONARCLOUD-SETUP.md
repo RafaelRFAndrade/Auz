@@ -57,8 +57,8 @@ Para garantir que apenas código de qualidade seja mergeado:
 
 ## 📋 Arquivos Criados
 
-### 1. `sonar-project.properties`
-Configurações específicas do projeto para análise:
+### 1. Configuração via GitHub Actions
+Configurações específicas do projeto para análise (via argumentos do workflow):
 - Caminhos do código fonte
 - Exclusões de arquivos
 - Configurações de qualidade
@@ -184,6 +184,12 @@ Quality Gate failed
 ERROR: You are running CI analysis while Automatic Analysis is enabled
 ```
 **Solução**: ✅ **CORRIGIDO** - Adicionado `sonar.ci.automaticAnalysis=false`
+
+#### 5. Arquivo sonar-project.properties não reconhecido
+```
+sonar-project.properties files are not understood by the SonarScanner for .NET
+```
+**Solução**: ✅ **CORRIGIDO** - Removido arquivo e movidas configurações para argumentos do workflow
 
 ### Logs Úteis:
 ```bash
