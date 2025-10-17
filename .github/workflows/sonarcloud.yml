@@ -63,6 +63,7 @@ jobs:
           -Dsonar.ci.branch.name=${{ github.ref_name }}
           -Dsonar.ci.branch.target=${{ github.base_ref }}
           -Dsonar.sourceEncoding=UTF-8
+          -Dsonar.ci.analysisMode=ci
 
   quality-gate:
     name: Quality Gate
@@ -85,3 +86,4 @@ jobs:
           -Dsonar.organization=rafaelrfandrade
           -Dsonar.qualitygate.wait=true
           -Dsonar.ci.automaticAnalysis=false
+          -Dsonar.ci.analysisMode=ci
