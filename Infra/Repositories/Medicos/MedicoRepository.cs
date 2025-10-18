@@ -23,17 +23,17 @@ namespace Infra.Repositories.Medicos
             string sql =
                 """
                 SELECT 
-                	Codigo,
-                	Situacao,
-                	Nome,
-                	DtInclusao,
-                	DtSituacao,
-                	CRM,
-                	Email,
-                	Telefone,
-                	DocumentoFederal
+                    Codigo,
+                    Situacao,
+                    Nome,
+                    DtInclusao,
+                    DtSituacao,
+                    CRM,
+                    Email,
+                    Telefone,
+                    DocumentoFederal
                 FROM 
-                	dbo.Medico  WITH(NOLOCK)
+                    dbo.Medico WITH(NOLOCK)
                 WHERE 
                     CodigoUsuario = @p0
                 AND
@@ -45,7 +45,9 @@ namespace Infra.Repositories.Medicos
 
             sql += " ORDER BY DtInclusao DESC OFFSET @p2 ROWS FETCH NEXT @p3 ROWS ONLY";
 
-            return Database.SqlQueryRaw<ListarMedicoRawQuery>(sql, codigoUsuario, filtro, pagina == 1 ? 0 : pagina, itensPorPagina);
+            var offset = (pagina - 1) * itensPorPagina;
+
+            return Database.SqlQueryRaw<ListarMedicoRawQuery>(sql, codigoUsuario, filtro ?? string.Empty, offset, itensPorPagina);
         }
 
         public CountRawQuery ObterTotalizador(string filtro, Guid codigoUsuario)

@@ -79,6 +79,26 @@ namespace Application.Services
             _pacienteRepository.Atualizar(paciente);
         }
 
+        public void AtualizarDetalhado(AtualizarPacienteDetalhadoRequest request, Guid codigoUsuario)
+        {
+            request.Validar();
+
+            var paciente = _pacienteRepository.Obter(request.CodigoPaciente) ??
+                throw new AuzException("Paciente não encontrado");
+
+            if (paciente.CodigoUsuario != codigoUsuario)
+                throw new AuzException("Usuário não possuí permissão para alterar o paciente");
+
+            if (paciente.DocumentoFederal != request.DocumentoFederal)
+                throw new AuzException("Não é possível alterar o documento federal.");
+
+            _mapper.Map(request, paciente);
+
+            paciente.DtSituacao = DateTime.Now;
+
+            _pacienteRepository.Atualizar(paciente);
+        }
+
         public void Desativar(DesativarPacienteRequest request, Guid codigoUsuario)
         {
             var paciente = _pacienteRepository.Obter(request.CodigoPaciente) ??

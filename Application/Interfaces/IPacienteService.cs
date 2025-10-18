@@ -15,5 +15,6 @@ namespace Application.Interfaces
         Paciente Obter(Guid codigoPaciente, Guid codigoUsuario);
         Paciente ObterPorDocumentoFederal(string documentoFederal, Guid codigoParceiro);
         List<ListarDocumentosRawQuery> BuscarDocumentos(string documentoFederal, Guid codigoParceiro);
+        void AtualizarDetalhado(AtualizarPacienteDetalhadoRequest request, Guid codigoUsuario);
     }
 }

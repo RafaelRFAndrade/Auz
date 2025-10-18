@@ -48,17 +48,25 @@ namespace Application.Services
 
         public ListarMedicosResponse Listar(ListarRequest request, Guid codigoUsuario)
         {
-            var listaMedicos = _medicoRepository.Listar(request.Filtro, codigoUsuario, request.Pagina.GetValueOrDefault(), request.ItensPorPagina.GetValueOrDefault());
+            var pagina = Math.Max(1, request.Pagina.GetValueOrDefault(1));
+
+            var itensPorPagina = request.ItensPorPagina.GetValueOrDefault(25);
+            if (itensPorPagina <= 0) itensPorPagina = 25;
+
+            var listaMedicos = _medicoRepository.Listar(request.Filtro, codigoUsuario, pagina, itensPorPagina);
 
             var totalizador = _medicoRepository.ObterTotalizador(request.Filtro, codigoUsuario);
 
-            var total = totalizador.Count / request.ItensPorPagina.GetValueOrDefault(25);
+            var totalItens = totalizador?.Count ?? 0;
+
+            var totalPaginas = (int)Math.Ceiling((double)totalItens / itensPorPagina);
+            totalPaginas = Math.Max(1, totalPaginas); // garante pelo menos 1 página (ajuste se preferir 0 quando não houver itens)
 
             return new ListarMedicosResponse
             {
                 ListaMedicos = listaMedicos,
-                TotalPaginas = total == 0 ? 25 : total,
-                Itens = totalizador.Count
+                TotalPaginas = totalPaginas,
+                Itens = totalItens
             };
         }
 

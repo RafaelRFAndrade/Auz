@@ -101,6 +101,7 @@ builder.Services.AddAutoMapper(config => {
     config.CreateMap<AtualizarPacienteRequest, Paciente>();
     config.CreateMap<ObterAtendimentoRawQuery, ObterAtendimentoResponse>();
     config.CreateMap<AtualizarCompletoRequest, Medico>();
+    config.CreateMap<AtualizarPacienteDetalhadoRequest, Paciente>();
 });
 
 builder.Services.Configure<FormOptions>(options =>
