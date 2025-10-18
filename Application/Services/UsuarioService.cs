@@ -112,17 +112,25 @@ namespace Application.Services
 
         public ObterUsuariosParceiroResponse ObterUsuariosPorParceiro(Guid codigoParceiro, ObterUsuariosPorParceiroRequest request)
         {
-            var usuarios = _usuarioRepository.ObterUsuariosPorParceiro(codigoParceiro, request.Pagina.GetValueOrDefault(1), request.Itens.GetValueOrDefault(25));
+            var pagina = Math.Max(1, request.Pagina.GetValueOrDefault(1));
 
-            var totalizador = _usuarioRepository.ObterTotalizador(codigoParceiro);
+            var itensPorPagina = request.ItensPorPagina.GetValueOrDefault(25);
+            if (itensPorPagina <= 0) itensPorPagina = 25;
 
-            var total = totalizador.Count / request.Itens.GetValueOrDefault(25);
+            var usuarios = _usuarioRepository.ObterUsuariosPorParceiro(codigoParceiro, pagina, itensPorPagina, request.Filtro);
+
+            var totalizador = _usuarioRepository.ObterTotalizador(codigoParceiro, request.Filtro);
+
+            var totalItens = totalizador?.Count ?? 0;
+
+            var totalPaginas = (int)Math.Ceiling((double)totalItens / itensPorPagina);
+            totalPaginas = Math.Max(1, totalPaginas);
 
             return new ObterUsuariosParceiroResponse
             {
                 Usuarios = usuarios,
-                TotalPaginas = total == 0 ? 25 : total,
-                Itens = totalizador.Count
+                TotalPaginas = totalPaginas,
+                Itens = totalItens
             };
         }
     }

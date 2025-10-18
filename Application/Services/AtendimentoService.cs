@@ -82,17 +82,25 @@ namespace Application.Services
 
         public ListarAtendimentosResponse ListarAtendimentos(ListarAtendimentosRequest request, Guid codigoUsuario, Guid codigoParceiro)
         {
-            var atendimentos = _atendimentoRepository.ListarAtendimentos(codigoParceiro, request.Pagina.GetValueOrDefault(), request.ItensPorPagina.GetValueOrDefault());
+            var pagina = Math.Max(1, request.Pagina.GetValueOrDefault(1));
 
-            var totalizador = _atendimentoRepository.TotalizarAtendimentos(codigoParceiro);
+            var itensPorPagina = request.ItensPorPagina.GetValueOrDefault(25);
+            if (itensPorPagina <= 0) itensPorPagina = 25;
 
-            var total = totalizador.Count / request.ItensPorPagina.GetValueOrDefault(25);
+            var atendimentos = _atendimentoRepository.ListarAtendimentos(codigoParceiro, pagina, itensPorPagina, request.Filtro);
+
+            var totalizador = _atendimentoRepository.TotalizarAtendimentos(codigoParceiro, request.Filtro);
+
+            var totalItens = totalizador?.Count ?? 0;
+
+            var totalPaginas = (int)Math.Ceiling((double)totalItens / itensPorPagina);
+            totalPaginas = Math.Max(1, totalPaginas);
 
             return new ListarAtendimentosResponse
             {
                 Atendimentos = atendimentos,
-                TotalPaginas = total == 0 ? 1 : total,
-                Itens = totalizador.Count
+                TotalPaginas = totalPaginas,
+                Itens = totalItens
             };
         }
 

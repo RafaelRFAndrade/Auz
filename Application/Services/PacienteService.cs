@@ -45,17 +45,25 @@ namespace Application.Services
 
         public ListarPacienteResponse Listar(ListarRequest request, Guid codigoUsuario)
         {
-            var listarPacientes = _pacienteRepository.Listar(request.Filtro, codigoUsuario, request.Pagina.GetValueOrDefault(), request.ItensPorPagina.GetValueOrDefault());
+            var pagina = Math.Max(1, request.Pagina.GetValueOrDefault(1));
+
+            var itensPorPagina = request.ItensPorPagina.GetValueOrDefault(25);
+            if (itensPorPagina <= 0) itensPorPagina = 25;
+
+            var listarPacientes = _pacienteRepository.Listar(request.Filtro, codigoUsuario, pagina, itensPorPagina);
 
             var totalizador = _pacienteRepository.ObterTotalizador(request.Filtro, codigoUsuario);
 
-            var total = totalizador.Count / request.ItensPorPagina.GetValueOrDefault(25);
+            var totalItens = totalizador?.Count ?? 0;
+
+            var totalPaginas = (int)Math.Ceiling((double)totalItens / itensPorPagina);
+            totalPaginas = Math.Max(1, totalPaginas);
 
             return new ListarPacienteResponse
             {
                 ListaPacientes = listarPacientes,
-                TotalPaginas = total == 0 ? 25 : total,
-                Itens = totalizador.Count
+                TotalPaginas = totalPaginas,
+                Itens = totalItens
             };
         }
 

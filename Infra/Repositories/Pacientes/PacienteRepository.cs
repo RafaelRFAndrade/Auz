@@ -41,7 +41,9 @@ namespace Infra.Repositories.Pacientes
 
             sql += " ORDER BY DtInclusao DESC OFFSET @p2 ROWS FETCH NEXT @p3 ROWS ONLY";
 
-            return Database.SqlQueryRaw<ListarPacientesRawQuery>(sql, codigoUsuario, filtro, pagina == 1 ? 0 : pagina, itensPorPagina);
+            var offset = (pagina - 1) * itensPorPagina;
+
+            return Database.SqlQueryRaw<ListarPacientesRawQuery>(sql, codigoUsuario, filtro, offset, itensPorPagina);
         }
 
         public CountRawQuery ObterTotalizador(string filtro, Guid codigoUsuario)

@@ -8,11 +8,11 @@ namespace Infra.RawQueryResult
 
         public Situacao Situacao { get; set; }
 
-        public string Nome { get; set; }
+        public string? Nome { get; set; }
 
-        public DateTime DtInclusao { get; set; }
+        public DateTime? DtInclusao { get; set; }
 
-        public DateTime DtSituacao { get; set; }
+        public DateTime? DtSituacao { get; set; }
 
         public string? DocumentoFederal { get; set; }
 

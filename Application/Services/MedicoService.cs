@@ -60,7 +60,7 @@ namespace Application.Services
             var totalItens = totalizador?.Count ?? 0;
 
             var totalPaginas = (int)Math.Ceiling((double)totalItens / itensPorPagina);
-            totalPaginas = Math.Max(1, totalPaginas); // garante pelo menos 1 página (ajuste se preferir 0 quando não houver itens)
+            totalPaginas = Math.Max(1, totalPaginas);
 
             return new ListarMedicosResponse
             {

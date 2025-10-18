@@ -75,9 +75,9 @@ namespace Infra.Repositories.Atendimentos
             return Database.SqlQueryRaw<CountRawQuery>(sql, codigoPaciente, Situacao.Ativo).FirstOrDefault()?.Count > 0;
         }
 
-        public List<ListarAtendimentosRawQuery> ListarAtendimentos(Guid codigoParceiro, int pagina, int itensPorPagina)
+        public List<ListarAtendimentosRawQuery> ListarAtendimentos(Guid codigoParceiro, int pagina, int itensPorPagina, string filtro)
         {
-            const string sql =
+            string sql =
                 """
                     SELECT 
                         ate.Codigo AS 'CodigoAtendimento',
@@ -96,15 +96,21 @@ namespace Infra.Repositories.Atendimentos
                         dbo.Medico AS me WITH(NOLOCK) ON me.Codigo = ate.CodigoMedico
                     WHERE 
                         ate.CodigoUsuario = us.Codigo AND ate.Situacao = @p1
-                    ORDER BY ate.DtInclusao DESC OFFSET @p2 ROWS FETCH NEXT @p3 ROWS ONLY
                 """;
 
-            return Database.SqlQueryRaw<ListarAtendimentosRawQuery>(sql, codigoParceiro, Situacao.Ativo, pagina == 1 ? 0 : pagina, itensPorPagina).ToList();
+            if (!string.IsNullOrWhiteSpace(filtro))
+                sql += " AND (pa.Nome LIKE CONCAT('%', @p4, '%') OR me.Nome LIKE CONCAT('%', @p4, '%') OR ate.Descricao LIKE CONCAT('%', @p4, '%'))";
+
+            sql += " ORDER BY ate.DtInclusao DESC OFFSET @p2 ROWS FETCH NEXT @p3 ROWS ONLY";
+
+            var offset = (pagina - 1) * itensPorPagina;
+
+            return Database.SqlQueryRaw<ListarAtendimentosRawQuery>(sql, codigoParceiro, Situacao.Ativo, offset, itensPorPagina, filtro).ToList();
          }
 
-        public CountRawQuery TotalizarAtendimentos(Guid codigoParceiro)
+        public CountRawQuery TotalizarAtendimentos(Guid codigoParceiro, string filtro)
         {
-            const string sql =
+            string sql =
                 """
                     SELECT 
                         COUNT(*) as Count
@@ -114,11 +120,16 @@ namespace Infra.Repositories.Atendimentos
                         dbo.Usuario AS us WITH(NOLOCK) ON us.CodigoParceiro = @p0
                     INNER JOIN 
                 	    dbo.Paciente AS pa WITH(NOLOCK) ON pa.Codigo = ate.CodigoPaciente
+                    INNER JOIN
+                        dbo.Medico AS me WITH(NOLOCK) ON me.Codigo = ate.CodigoMedico
                     WHERE 
                         ate.CodigoUsuario = us.Codigo AND ate.Situacao = @p1
                 """;
 
-            return Database.SqlQueryRaw<CountRawQuery>(sql, codigoParceiro, Situacao.Ativo).FirstOrDefault();
+            if (!string.IsNullOrWhiteSpace(filtro))
+                sql += " AND (pa.Nome LIKE CONCAT('%', @p2, '%') OR me.Nome LIKE CONCAT('%', @p2, '%') OR ate.Descricao LIKE CONCAT('%', @p2, '%'))";
+
+            return Database.SqlQueryRaw<CountRawQuery>(sql, codigoParceiro, Situacao.Ativo, filtro).FirstOrDefault();
         }
 
         public void Deletar(Atendimento atendimento)

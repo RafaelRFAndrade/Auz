@@ -52,9 +52,9 @@ namespace Infra.Repositories.Usuarios
             return Database.SqlQueryRaw<StringRawQuery>(sql, codigoUsuario).FirstOrDefault();
         }
 
-        public List<UsuariosRawQuery> ObterUsuariosPorParceiro(Guid codigoParceiro, int pagina, int itens)
+        public List<UsuariosRawQuery> ObterUsuariosPorParceiro(Guid codigoParceiro, int pagina, int itens, string filtro)
         {
-            const string sql =
+            string sql =
                 """
                 SELECT 
                     Codigo,
@@ -69,15 +69,21 @@ namespace Infra.Repositories.Usuarios
                 	dbo.Usuario WITH(NOLOCK) 
                 WHERE 
                 	CodigoParceiro = @p0
-                ORDER BY DtInclusao DESC OFFSET @p1 ROWS FETCH NEXT @p2 ROWS ONLY
                 """;
 
-            return Database.SqlQueryRaw<UsuariosRawQuery>(sql, codigoParceiro, pagina == 1 ? 0 : pagina * 25, itens).ToList();
+            if (!string.IsNullOrWhiteSpace(filtro))
+                sql += " AND (Nome LIKE CONCAT('%', @p3, '%') OR Email LIKE CONCAT('%', @p3, '%'))";
+
+            sql += " ORDER BY DtInclusao DESC OFFSET @p1 ROWS FETCH NEXT @p2 ROWS ONLY";
+
+            var offset = (pagina - 1) * itens;
+
+            return Database.SqlQueryRaw<UsuariosRawQuery>(sql, codigoParceiro, offset, itens, filtro).ToList();
         }
 
-        public CountRawQuery ObterTotalizador(Guid codigoParceiro)
+        public CountRawQuery ObterTotalizador(Guid codigoParceiro, string filtro)
         {
-            const string sql =
+            string sql =
                 """
                 SELECT 
                     COUNT(*) as Count
@@ -87,7 +93,10 @@ namespace Infra.Repositories.Usuarios
                 	CodigoParceiro = @p0
                 """;
 
-            return Database.SqlQueryRaw<CountRawQuery>(sql, codigoParceiro).FirstOrDefault();
+            if (!string.IsNullOrWhiteSpace(filtro))
+                sql += " AND (Nome LIKE CONCAT('%', @p1, '%') OR Email LIKE CONCAT('%', @p1, '%'))";
+
+            return Database.SqlQueryRaw<CountRawQuery>(sql, codigoParceiro, filtro).FirstOrDefault();
         }
     }
 }

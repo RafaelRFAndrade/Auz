@@ -9,7 +9,7 @@ namespace Infra.Repositories.Usuarios
         void Inserir(Usuario usuario);
         Usuario ObterPorEmail(string email);
         StringRawQuery ObterNome(Guid codigoUsuario);
-        List<UsuariosRawQuery> ObterUsuariosPorParceiro(Guid codigoUsuario, int pagina, int itens);
-        CountRawQuery ObterTotalizador(Guid codigoParceiro);
+        List<UsuariosRawQuery> ObterUsuariosPorParceiro(Guid codigoUsuario, int pagina, int itens, string filtro);
+        CountRawQuery ObterTotalizador(Guid codigoParceiro, string filtro);
     }
 }
