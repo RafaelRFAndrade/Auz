@@ -21,6 +21,7 @@ using Infra.Repositories.Documentos;
 using Infra.RawQueryResult;
 using Application.Messaging.Response.Atendimento;
 using Microsoft.AspNetCore.Http.Features;
+using Application.Messaging.Request.Usuario;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -102,6 +103,7 @@ builder.Services.AddAutoMapper(config => {
     config.CreateMap<ObterAtendimentoRawQuery, ObterAtendimentoResponse>();
     config.CreateMap<AtualizarCompletoRequest, Medico>();
     config.CreateMap<AtualizarPacienteDetalhadoRequest, Paciente>();
+    config.CreateMap<AtualizarUsuarioRequest, Usuario>();
 });
 
 builder.Services.Configure<FormOptions>(options =>

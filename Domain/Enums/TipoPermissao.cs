@@ -3,6 +3,7 @@
     public enum TipoPermissao
     {
         Admin,
-        Standard
+        Standard,
+        Operador
     }
 }

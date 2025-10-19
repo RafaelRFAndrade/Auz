@@ -17,6 +17,27 @@ namespace Infra.Repositories.Usuarios
             SaveChanges();
         }
 
+        public void Atualizar(Usuario usuario)
+        {
+            Update(usuario);
+            SaveChanges();
+        }
+
+        public Usuario? Obter(Guid codigo)
+        {
+            const string sql =
+                """
+                SELECT TOP 1
+                    *
+                FROM 
+                    dbo.Usuario WITH(NOLOCK)
+                WHERE
+                    Codigo = @p0
+                """;
+
+            return Database.SqlQueryRaw<Usuario>(sql, codigo).FirstOrDefault();
+        }
+
         public List<Usuario> ListarUsuarios()
         {
             throw new NotImplementedException();

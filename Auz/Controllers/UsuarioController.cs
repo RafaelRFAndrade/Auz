@@ -2,6 +2,7 @@
 using Application.Messaging.Exception;
 using Application.Messaging.Request;
 using Application.Messaging.Request.Usuario;
+using Azure.Core;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Web.Controllers.Base;
@@ -91,6 +92,70 @@ namespace Web.Controllers
                 return StatusCode(500, new { Sucesso = false, Mensagem = "Ocorreu um erro na requisição." });
             }
         }
+
+        [HttpPost("UsuarioPorParceiro")]
+        public IActionResult CadastrarParceiroJaExistente(CadastroUsuarioParceiroJaExistenteRequest cadastroUsuarioRequest)
+        {
+            try
+            {
+                var codigoParceiro = ObterCodigoParceiro();
+
+                _usuarioService.CadastrarParceiroJaExistente(cadastroUsuarioRequest, codigoParceiro);
+
+                return Created();
+            }
+            catch (AuzException ex)
+            {
+                return BadRequest(new { Sucesso = false, Mensagem = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return StatusCode(500, new { Sucesso = false, Mensagem = "Ocorreu um erro na requisição." });
+            }
+        }
+
+
+        [HttpDelete]
+        public IActionResult Desativar(DesativarUsuarioRequest request)
+        {
+            try
+            {
+                _usuarioService.Desativar(request);
+
+                return Ok();
+            }
+            catch (AuzException ex)
+            {
+                return BadRequest(new { Sucesso = false, Mensagem = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return StatusCode(500, new { Sucesso = false, Mensagem = "Ocorreu um erro na requisição." });
+            }
+        }
+
+        [HttpPatch]
+        public IActionResult Atualizar(AtualizarUsuarioRequest request)
+        {
+            try
+            {
+                _usuarioService.Atualizar(request);
+
+                return Ok();
+            }
+            catch (AuzException ex)
+            {
+                return BadRequest(new { Sucesso = false, Mensagem = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return StatusCode(500, new { Sucesso = false, Mensagem = "Ocorreu um erro na requisição." });
+            }
+        }
+
 
         [HttpPost("Login")]
         public IActionResult Logar(LoginRequest request)

@@ -2,6 +2,7 @@
 using Application.Messaging.Exception;
 using Application.Messaging.Request.Usuario;
 using Application.Messaging.Response.Usuario;
+using AutoMapper;
 using Domain.Entidades;
 using Domain.Enums;
 using Infra.Repositories.Agendamentos;
@@ -20,18 +21,21 @@ namespace Application.Services
         private readonly IAgendamentoRepository _agendamentoRepository;
         private readonly IAtendimentoRepository _atendimentoRepository;
         private readonly IParceiroRepository _parceiroRepository;
+        private readonly IMapper _mapper;
 
         public UsuarioService(IUsuarioRepository usuarioRepository,
             IAutenticacaoService autenticacaoService,
             IAtendimentoRepository atendimentoRepository,
             IAgendamentoRepository agendamentoRepository,
-            IParceiroRepository parceiroRepository)
+            IParceiroRepository parceiroRepository,
+            IMapper mapper)
         {
             _usuarioRepository = usuarioRepository;
             _autenticacaoService = autenticacaoService;
             _agendamentoRepository = agendamentoRepository;
             _atendimentoRepository = atendimentoRepository;
             _parceiroRepository = parceiroRepository;
+            _mapper = mapper;
         }
 
         public void Cadastrar(CadastroUsuarioRequest request)
@@ -132,6 +136,55 @@ namespace Application.Services
                 TotalPaginas = totalPaginas,
                 Itens = totalItens
             };
+        }
+
+        public void CadastrarParceiroJaExistente(CadastroUsuarioParceiroJaExistenteRequest request, Guid codigoParceiro)
+        {
+            request.Validar();
+
+            var usuario = new Usuario
+            {
+                Codigo = Guid.NewGuid(),
+                Situacao = Situacao.Ativo,
+                Email = request.Email,
+                Nome = request.Nome,
+                DtInclusao = DateTime.Now,
+                TipoPermissao = request.TipoPermissao,
+                Senha = request.Senha,
+                CodigoParceiro = codigoParceiro
+            };
+
+            usuario.Senha = _autenticacaoService.Encriptador(usuario, usuario.Senha);
+
+            var usuarioJaExistente = _usuarioRepository.ObterPorEmail(request.Email);
+
+            if (usuarioJaExistente is not null)
+                throw new AuzException("Email já cadastrado.");
+
+            _usuarioRepository.Inserir(usuario);
+        }
+
+        public void Desativar(DesativarUsuarioRequest request)
+        {
+            var usuario = _usuarioRepository.Obter(request.CodigoUsuario) ??
+                    throw new AuzException("Usuário não encontrado.");
+
+            usuario.Situacao = Situacao.Desativo;
+            usuario.DtSituacao = DateTime.Now;
+
+            _usuarioRepository.Atualizar(usuario);
+        }
+
+        public void Atualizar(AtualizarUsuarioRequest request)
+        {
+            request.Validar();
+
+            var usuario = _usuarioRepository.Obter(request.Codigo) ??
+                    throw new AuzException("Usuário não encontrado.");
+
+            _mapper.Map(request, usuario);
+
+            _usuarioRepository.Atualizar(usuario);
         }
     }
 }

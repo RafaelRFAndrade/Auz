@@ -11,5 +11,7 @@ namespace Infra.Repositories.Usuarios
         StringRawQuery ObterNome(Guid codigoUsuario);
         List<UsuariosRawQuery> ObterUsuariosPorParceiro(Guid codigoUsuario, int pagina, int itens, string filtro);
         CountRawQuery ObterTotalizador(Guid codigoParceiro, string filtro);
+        void Atualizar(Usuario usuario);
+        Usuario? Obter(Guid codigo);
     }
 }
