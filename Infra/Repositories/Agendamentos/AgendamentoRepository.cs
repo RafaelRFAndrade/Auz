@@ -23,7 +23,7 @@ namespace Infra.Repositories.Agendamentos
         {
             const string sql =
                 """
-                SELECT 
+                SELECT TOP 10
                 	age.Descricao as NomeAgendamento,
                 	age.Situacao,
                 	ate.Descricao as NomeAtendimento,

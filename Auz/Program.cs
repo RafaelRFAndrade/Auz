@@ -22,6 +22,7 @@ using Infra.RawQueryResult;
 using Application.Messaging.Response.Atendimento;
 using Microsoft.AspNetCore.Http.Features;
 using Application.Messaging.Request.Usuario;
+using Application.Messaging.Request.Parceiro;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -90,6 +91,7 @@ builder.Services.AddTransient<IMedicoService, MedicoService>();
 builder.Services.AddTransient<IAgendamentoService, AgendamentoService>();
 builder.Services.AddTransient<IAwsService, AwsService>();
 builder.Services.AddTransient<IDocumentoService, DocumentoService>();
+builder.Services.AddTransient<IParceiroService, ParceiroService>();
 
 builder.Services.AddDbContext<RepositoryBase>(options =>
     options.UseSqlServer(
@@ -104,6 +106,7 @@ builder.Services.AddAutoMapper(config => {
     config.CreateMap<AtualizarCompletoRequest, Medico>();
     config.CreateMap<AtualizarPacienteDetalhadoRequest, Paciente>();
     config.CreateMap<AtualizarUsuarioRequest, Usuario>();
+    config.CreateMap<AtualizarParceiroRequest, Parceiro>();
 });
 
 builder.Services.Configure<FormOptions>(options =>

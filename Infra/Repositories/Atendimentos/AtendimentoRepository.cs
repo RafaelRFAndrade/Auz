@@ -22,7 +22,7 @@ namespace Infra.Repositories.Atendimentos
         {
             const string sql =
                 """
-                SELECT 
+                SELECT TOP 10
                 	ate.Descricao AS NomeAtendimento,
                 	me.Nome AS NomeMedico,
                 	pa.Nome AS NomePaciente,

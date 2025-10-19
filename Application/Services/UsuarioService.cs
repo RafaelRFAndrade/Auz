@@ -67,7 +67,9 @@ namespace Application.Services
                 DtInclusao = DateTime.Now,
                 DtSituacao = DateTime.Now,
                 Admin = false,
-                Nome = request.NomeParceiro
+                Nome = request.NomeParceiro,
+                CodigoUsuarioResponsavel = usuario.Codigo,
+                CodigoUsuarioInclusao = usuario.Codigo
             };
 
             usuario.CodigoParceiro = parceiro.Codigo;
