@@ -177,10 +177,10 @@ namespace Application.Tests.Services
                 ItensPorPagina = 10
             };
 
-            _atendimentoRepoMock.Setup(r => r.ListarAtendimentos(It.IsAny<Guid>(), 1, 10))
+            _atendimentoRepoMock.Setup(r => r.ListarAtendimentos(It.IsAny<Guid>(), 1, 10, It.IsAny<string>()))
                 .Returns(new List<ListarAtendimentosRawQuery> { new ListarAtendimentosRawQuery() });
 
-            _atendimentoRepoMock.Setup(r => r.TotalizarAtendimentos(It.IsAny<Guid>()))
+            _atendimentoRepoMock.Setup(r => r.TotalizarAtendimentos(It.IsAny<Guid>(), It.IsAny<string>()))
                 .Returns(new CountRawQuery { Count = 10 });
 
             // Act

@@ -2,6 +2,7 @@ using Application.Interfaces;
 using Application.Messaging.Exception;
 using Application.Messaging.Request.Usuario;
 using Application.Services;
+using AutoMapper;
 using Domain.Entidades;
 using Domain.Enums;
 using FluentAssertions;
@@ -22,6 +23,7 @@ namespace Application.Tests.Services
         private readonly Mock<IAtendimentoRepository> _atendimentoRepositoryMock;
         private readonly Mock<IAgendamentoRepository> _agendamentoRepositoryMock;
         private readonly Mock<IParceiroRepository> _parceiroRepositoryMock;
+        private readonly Mock<IMapper> _mapper;
         private readonly UsuarioService _service;
 
         public UsuarioServiceTests()
@@ -31,13 +33,15 @@ namespace Application.Tests.Services
             _atendimentoRepositoryMock = new Mock<IAtendimentoRepository>();
             _agendamentoRepositoryMock = new Mock<IAgendamentoRepository>();
             _parceiroRepositoryMock = new Mock<IParceiroRepository>(); 
+            _mapper = new Mock<IMapper>();
 
             _service = new UsuarioService(
                 _usuarioRepositoryMock.Object,
                 _autenticacaoServiceMock.Object,
                 _atendimentoRepositoryMock.Object,
                 _agendamentoRepositoryMock.Object,
-                _parceiroRepositoryMock.Object
+                _parceiroRepositoryMock.Object,
+                _mapper.Object
             );
         }
 
