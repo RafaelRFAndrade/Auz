@@ -8,7 +8,7 @@ namespace Application.Helpers
         {
             if (string.IsNullOrWhiteSpace(cpf)) return false;
 
-            cpf = Regex.Replace(cpf, "[^0-9]", ""); // Remove caracteres não numéricos
+            cpf = Regex.Replace(cpf, "[^0-9]", "", RegexOptions.None, TimeSpan.FromSeconds(1)); // Remove caracteres não numéricos
 
             if (cpf.Length != 11 || cpf.Distinct().Count() == 1) return false; // Verifica se tem 11 dígitos e não é repetido
 
@@ -26,7 +26,7 @@ namespace Application.Helpers
         {
             if (string.IsNullOrWhiteSpace(celular)) return false;
 
-            celular = Regex.Replace(celular, "[^0-9]", "");
+            celular = Regex.Replace(celular, "[^0-9]", "", RegexOptions.None, TimeSpan.FromSeconds(1));
 
             if (celular.Length != 11) return false;
 
