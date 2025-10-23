@@ -9,6 +9,7 @@ using FluentAssertions;
 using Infra.RawQueryResult;
 using Infra.Repositories.Agendamentos;
 using Infra.Repositories.Atendimentos;
+using Infra.Repositories.MedicoUsuarioOperacional;
 using Infra.Repositories.Parceiro;
 using Infra.Repositories.Usuarios;
 using Microsoft.AspNetCore.Identity;
@@ -24,6 +25,7 @@ namespace Application.Tests.Services
         private readonly Mock<IAgendamentoRepository> _agendamentoRepositoryMock;
         private readonly Mock<IParceiroRepository> _parceiroRepositoryMock;
         private readonly Mock<IMapper> _mapper;
+        private readonly Mock<IMedicoUsuarioOperacionalRepository> _medicoUsuarioOperacionalRepository;
         private readonly UsuarioService _service;
 
         public UsuarioServiceTests()
@@ -32,7 +34,8 @@ namespace Application.Tests.Services
             _autenticacaoServiceMock = new Mock<IAutenticacaoService>();
             _atendimentoRepositoryMock = new Mock<IAtendimentoRepository>();
             _agendamentoRepositoryMock = new Mock<IAgendamentoRepository>();
-            _parceiroRepositoryMock = new Mock<IParceiroRepository>(); 
+            _parceiroRepositoryMock = new Mock<IParceiroRepository>();
+            _medicoUsuarioOperacionalRepository = new Mock<IMedicoUsuarioOperacionalRepository>();
             _mapper = new Mock<IMapper>();
 
             _service = new UsuarioService(
@@ -41,7 +44,8 @@ namespace Application.Tests.Services
                 _atendimentoRepositoryMock.Object,
                 _agendamentoRepositoryMock.Object,
                 _parceiroRepositoryMock.Object,
-                _mapper.Object
+                _mapper.Object,
+                _medicoUsuarioOperacionalRepository.Object
             );
         }
 
