@@ -1,4 +1,5 @@
 ﻿using Application.Messaging.Exception;
+using Domain.Enums;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
@@ -26,6 +27,19 @@ namespace Web.Controllers.Base
                 throw new AuzException("Parceiro não encontrado.");
 
             return Guid.Parse(codigoParceiro);
+        }
+
+        protected TipoPermissao ObterPermissao()
+        {
+            var permissaoClaim = User.FindFirstValue(ClaimTypes.Role);
+
+            if (string.IsNullOrWhiteSpace(permissaoClaim))
+                throw new AuzException("Permissão do usuário não encontrada.");
+
+            if (!Enum.TryParse<TipoPermissao>(permissaoClaim, out var permissao))
+                throw new AuzException($"Permissão '{permissaoClaim}' inválida.");
+
+            return permissao;
         }
     }
 }

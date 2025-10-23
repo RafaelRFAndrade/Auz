@@ -7,6 +7,7 @@ using Domain.Entidades;
 using Domain.Enums;
 using Infra.Repositories.Agendamentos;
 using Infra.Repositories.Atendimentos;
+using Infra.Repositories.MedicoUsuarioOperacional;
 using Infra.Repositories.Parceiro;
 using Infra.Repositories.Usuarios;
 using Microsoft.AspNetCore.Identity;
@@ -22,13 +23,15 @@ namespace Application.Services
         private readonly IAtendimentoRepository _atendimentoRepository;
         private readonly IParceiroRepository _parceiroRepository;
         private readonly IMapper _mapper;
+        private readonly IMedicoUsuarioOperacionalRepository _medicoUsuarioOperacionalRepository;
 
         public UsuarioService(IUsuarioRepository usuarioRepository,
             IAutenticacaoService autenticacaoService,
             IAtendimentoRepository atendimentoRepository,
             IAgendamentoRepository agendamentoRepository,
             IParceiroRepository parceiroRepository,
-            IMapper mapper)
+            IMapper mapper,
+            IMedicoUsuarioOperacionalRepository medicoUsuarioOperacionalRepository)
         {
             _usuarioRepository = usuarioRepository;
             _autenticacaoService = autenticacaoService;
@@ -36,6 +39,7 @@ namespace Application.Services
             _atendimentoRepository = atendimentoRepository;
             _parceiroRepository = parceiroRepository;
             _mapper = mapper;
+            _medicoUsuarioOperacionalRepository = medicoUsuarioOperacionalRepository;
         }
 
         public void Cadastrar(CadastroUsuarioRequest request)
@@ -187,6 +191,35 @@ namespace Application.Services
             _mapper.Map(request, usuario);
 
             _usuarioRepository.Atualizar(usuario);
+        }
+
+        public void RelacionarUsuarioMedico(RelacionarMedicoUsuarioRequest request, TipoPermissao tipoPermissao, Guid codigoUsuario)
+        {
+            if (request.CodigoMedico == Guid.Empty)
+                throw new AuzException("Código não informado.");
+
+            var medicoUsuarioOperacional = new MedicoUsuarioOperacional
+            {
+                Codigo = Guid.NewGuid(),
+                CodigoMedico = request.CodigoMedico,
+                CodigoUsuario = codigoUsuario,
+                Permissao = ObterVisualizacao(tipoPermissao),
+                DtInclusao = DateTime.Now,
+                Ativo = true
+            };
+
+            _medicoUsuarioOperacionalRepository.Inserir(medicoUsuarioOperacional);
+        }
+
+        private TipoVisualizacao ObterVisualizacao(TipoPermissao tipoPermissao)
+        {
+            return tipoPermissao switch
+            {
+                TipoPermissao.Operador => TipoVisualizacao.Total,
+                TipoPermissao.Admin => TipoVisualizacao.Total,
+                TipoPermissao.Standard => TipoVisualizacao.Visualização,
+                _ => TipoVisualizacao.Visualização,
+            };
         }
     }
 }

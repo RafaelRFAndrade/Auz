@@ -23,6 +23,7 @@ using Application.Messaging.Response.Atendimento;
 using Microsoft.AspNetCore.Http.Features;
 using Application.Messaging.Request.Usuario;
 using Application.Messaging.Request.Parceiro;
+using Infra.Repositories.MedicoUsuarioOperacional;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -81,6 +82,7 @@ builder.Services.AddTransient<IMedicoRepository, MedicoRepository>();
 builder.Services.AddTransient<IAgendamentoRepository, AgendamentoRepository>();
 builder.Services.AddTransient<IParceiroRepository, ParceiroRepository>();
 builder.Services.AddTransient<IDocumentoRepository, DocumentoRepository>();
+builder.Services.AddTransient<IMedicoUsuarioOperacionalRepository, MedicoUsuarioOperacionalRepository>();   
 
 //Services
 builder.Services.AddTransient<IUsuarioService, UsuarioService>();

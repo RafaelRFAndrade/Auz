@@ -1,6 +1,7 @@
 ﻿using Application.Messaging.Request.Usuario;
 using Application.Messaging.Response.Usuario;
 using Domain.Entidades;
+using Domain.Enums;
 
 namespace Application.Interfaces
 {
@@ -13,5 +14,6 @@ namespace Application.Interfaces
         void CadastrarParceiroJaExistente(CadastroUsuarioParceiroJaExistenteRequest request, Guid codigoParceiro);
         void Desativar(DesativarUsuarioRequest request);
         void Atualizar(AtualizarUsuarioRequest request);
+        void RelacionarUsuarioMedico(RelacionarMedicoUsuarioRequest request, TipoPermissao tipoPermissao, Guid codigoUsuario);
     }
 }

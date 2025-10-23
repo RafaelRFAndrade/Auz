@@ -94,6 +94,7 @@ namespace Web.Controllers
         }
 
         [HttpPost("UsuarioPorParceiro")]
+        [Authorize]
         public IActionResult CadastrarParceiroJaExistente(CadastroUsuarioParceiroJaExistenteRequest cadastroUsuarioRequest)
         {
             try
@@ -213,6 +214,31 @@ namespace Web.Controllers
                 var response = await _documentoService.InserirDocumento(request, codigoUsuario, Domain.Enums.TipoEntidadeUpload.Usuario, Domain.Enums.TipoDocumento.Documento);
 
                 return Ok(response);
+            }
+            catch (AuzException ex)
+            {
+                return BadRequest(new { Sucesso = false, Mensagem = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return StatusCode(500, new { Sucesso = false, Mensagem = "Ocorreu um erro na requisição." });
+            }
+        }
+
+        [HttpPost("Relacionar")]
+        [Authorize]
+        public IActionResult RelacionarMedicoUsuario(RelacionarMedicoUsuarioRequest relacionarMedicoUsuarioRequest)
+        {
+            try
+            {
+                var codigoUsuario = ObterCodigoUsuario();
+
+                var permissao = ObterPermissao();
+
+                _usuarioService.RelacionarUsuarioMedico(relacionarMedicoUsuarioRequest, permissao, codigoUsuario);
+
+                return Created();
             }
             catch (AuzException ex)
             {
