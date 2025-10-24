@@ -1,5 +1,6 @@
 ﻿using Application.Interfaces;
 using Application.Messaging.Exception;
+using Application.Messaging.Request;
 using Application.Messaging.Request.Usuario;
 using Application.Messaging.Response.Usuario;
 using AutoMapper;
@@ -209,6 +210,30 @@ namespace Application.Services
             };
 
             _medicoUsuarioOperacionalRepository.Inserir(medicoUsuarioOperacional);
+        }
+
+        public ObterMedicoUsuarioResponse ObterRelacionamentos(ListarRequest listarRequest, Guid codigoUsuario)
+        {
+            var pagina = Math.Max(1, listarRequest.Pagina.GetValueOrDefault(1));
+
+            var itensPorPagina = listarRequest.ItensPorPagina.GetValueOrDefault(25);
+            if (itensPorPagina <= 0) itensPorPagina = 25;
+
+            var relacionamentos = _medicoUsuarioOperacionalRepository.Listar(codigoUsuario, pagina, itensPorPagina, listarRequest.Filtro);
+
+            var totalizador = _medicoUsuarioOperacionalRepository.TotalizarRelacionamentos(codigoUsuario, listarRequest.Filtro);
+
+            var totalItens = totalizador?.Count ?? 0;
+
+            var totalPaginas = (int)Math.Ceiling((double)totalItens / itensPorPagina);
+            totalPaginas = Math.Max(1, totalPaginas);
+
+            return new ObterMedicoUsuarioResponse
+            {
+                MedicoUsuario = relacionamentos,
+                TotalPaginas = totalPaginas,
+                Itens = totalItens
+            };
         }
 
         private TipoVisualizacao ObterVisualizacao(TipoPermissao tipoPermissao)

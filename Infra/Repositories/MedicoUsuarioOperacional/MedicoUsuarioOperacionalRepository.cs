@@ -22,9 +22,9 @@ namespace Infra.Repositories.MedicoUsuarioOperacional
             SaveChanges();
         }
 
-        public List<ObterMedicoUsuarioRawQuery> Listar(Guid codigoUsuario)
+        public List<ObterMedicoUsuarioRawQuery> Listar(Guid codigoUsuario, int pagina, int itens, string filtro)
         {
-            const string sql =
+            string sql =
                 """
                 SELECT 
                     muo.Codigo,
@@ -37,10 +37,35 @@ namespace Infra.Repositories.MedicoUsuarioOperacional
                 INNER JOIN 
                     dbo.Medico AS me WITH(NOLOCK) ON me.Codigo = muo.CodigoMedico
                 WHERE
-                    muo.Codigo = @p0
+                    muo.CodigoUsuario = @p0
                 """;
 
-            return Database.SqlQueryRaw<ObterMedicoUsuarioRawQuery>(sql, codigoUsuario).ToList();
+            if (!string.IsNullOrWhiteSpace(filtro))
+                sql += " AND (me.Nome LIKE CONCAT('%', @p3, '%')";
+
+            sql += " ORDER BY muo.DtInclusao DESC OFFSET @p1 ROWS FETCH NEXT @p2 ROWS ONLY";
+
+            var offset = (pagina - 1) * itens;
+
+            return Database.SqlQueryRaw<ObterMedicoUsuarioRawQuery>(sql, codigoUsuario, offset, itens, filtro).ToList();
+        }
+
+        public CountRawQuery TotalizarRelacionamentos(Guid codigoUsuario, string filtro)
+        {
+            string sql =
+                """
+                SELECT 
+                    COUNT(*)
+                FROM 
+                    dbo.MedicoUsuarioOperacional WITH(NOLOCK)
+                WHERE
+                    CodigoUsuario = @p0
+                """;
+
+            if (!string.IsNullOrWhiteSpace(filtro))
+                sql += " AND (Nome LIKE CONCAT('%', @p1, '%')";
+
+            return Database.SqlQueryRaw<CountRawQuery>(sql, codigoUsuario, filtro).FirstOrDefault();
         }
     }
 }

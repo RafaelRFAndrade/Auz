@@ -1,4 +1,5 @@
-﻿using Application.Messaging.Request.Usuario;
+﻿using Application.Messaging.Request;
+using Application.Messaging.Request.Usuario;
 using Application.Messaging.Response.Usuario;
 using Domain.Entidades;
 using Domain.Enums;
@@ -15,5 +16,6 @@ namespace Application.Interfaces
         void Desativar(DesativarUsuarioRequest request);
         void Atualizar(AtualizarUsuarioRequest request);
         void RelacionarUsuarioMedico(RelacionarMedicoUsuarioRequest request, TipoPermissao tipoPermissao, Guid codigoUsuario);
+        ObterMedicoUsuarioResponse ObterRelacionamentos(ListarRequest listarRequest, Guid codigoUsuario);
     }
 }
