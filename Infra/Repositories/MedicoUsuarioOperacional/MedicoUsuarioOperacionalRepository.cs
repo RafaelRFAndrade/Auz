@@ -55,7 +55,7 @@ namespace Infra.Repositories.MedicoUsuarioOperacional
             string sql =
                 """
                 SELECT 
-                    COUNT(*)
+                    COUNT(*) as Count
                 FROM 
                     dbo.MedicoUsuarioOperacional WITH(NOLOCK)
                 WHERE
@@ -66,6 +66,36 @@ namespace Infra.Repositories.MedicoUsuarioOperacional
                 sql += " AND (Nome LIKE CONCAT('%', @p1, '%')";
 
             return Database.SqlQueryRaw<CountRawQuery>(sql, codigoUsuario, filtro).FirstOrDefault();
+        }
+
+        public bool VerificarRelacionamento(Guid codigoUsuario, Guid codigoMedico)
+        {
+            const string sql =
+                """
+                SELECT 
+                    COUNT(*) as Count
+                FROM 
+                    dbo.MedicoUsuarioOperacional WITH(NOLOCK)
+                WHERE
+                    CodigoUsuario = @p0 AND CodigoMedico = @p1
+                """;
+
+            return Database.SqlQueryRaw<CountRawQuery>(sql, codigoUsuario, codigoMedico).FirstOrDefault().Count > 0;
+        }
+
+        public Domain.Entidades.MedicoUsuarioOperacional Obter(Guid codigo)
+        {
+            const string sql =
+                """
+                SELECT 
+                    *
+                FROM 
+                    dbo.MedicoUsuarioOperacional WITH(NOLOCK)
+                WHERE
+                    Codigo = @p0
+                """;
+
+            return Database.SqlQueryRaw<Domain.Entidades.MedicoUsuarioOperacional>(sql, codigo).FirstOrDefault();
         }
     }
 }

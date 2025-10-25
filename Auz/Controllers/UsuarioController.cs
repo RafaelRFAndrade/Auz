@@ -253,7 +253,7 @@ namespace Web.Controllers
 
         [HttpGet("Relacionamentos")]
         [Authorize]
-        public IActionResult ObterUsuarioMedicoOperacional(ListarRequest listarRequest)
+        public IActionResult ObterUsuarioMedicoOperacional([FromQuery]ListarRequest listarRequest)
         {
             try
             {

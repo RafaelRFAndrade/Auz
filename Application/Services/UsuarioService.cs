@@ -199,6 +199,9 @@ namespace Application.Services
             if (request.CodigoMedico == Guid.Empty)
                 throw new AuzException("Código não informado.");
 
+            if (_medicoUsuarioOperacionalRepository.VerificarRelacionamento(codigoUsuario, request.CodigoMedico))
+                throw new AuzException("Usuário e médico já relacionados.");
+
             var medicoUsuarioOperacional = new MedicoUsuarioOperacional
             {
                 Codigo = Guid.NewGuid(),

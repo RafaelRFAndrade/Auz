@@ -7,5 +7,6 @@ namespace Application.Interfaces
     {
         void Cadastrar(CadastroAgendamentoRequest request, Guid codigoUsuario);
         AgendamentosResponse Listar(Guid codigoParceiro, AgendamentosRequest request);
+        AgendamentoOperacionalResponse ObterOperacional(AgendamentoOperacionalRequest request);
     }
 }

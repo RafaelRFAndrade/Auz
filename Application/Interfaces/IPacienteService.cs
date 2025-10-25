@@ -9,12 +9,13 @@ namespace Application.Interfaces
     public interface IPacienteService
     {
         void Cadastrar(CadastroPacienteRequest request, Guid codigoUsuario);
-        ListarPacienteResponse Listar(ListarRequest request, Guid codigoUsuario);
+        ListarPacienteResponse Listar(ListarRequest request, Guid codigoParceiro);
         void Atualizar(AtualizarPacienteRequest request, Guid codigoUsuario);
         void Desativar(DesativarPacienteRequest request, Guid codigoUsuario);
         Paciente Obter(Guid codigoPaciente, Guid codigoUsuario);
         Paciente ObterPorDocumentoFederal(string documentoFederal, Guid codigoParceiro);
         List<ListarDocumentosRawQuery> BuscarDocumentos(string documentoFederal, Guid codigoParceiro);
         void AtualizarDetalhado(AtualizarPacienteDetalhadoRequest request, Guid codigoUsuario);
+        ListarPacienteResponse ObterOperacional(ObterOperacionalRequest request);
     }
 }

@@ -8,5 +8,7 @@ namespace Infra.Repositories.MedicoUsuarioOperacional
         void Atualizar(Domain.Entidades.MedicoUsuarioOperacional medicoUsuarioOperacional);
         List<ObterMedicoUsuarioRawQuery> Listar(Guid codigoUsuario, int pagina, int itens, string filtro);
         CountRawQuery TotalizarRelacionamentos(Guid codigoUsuario, string filtro);
+        bool VerificarRelacionamento(Guid codigoUsuario, Guid codigoMedico);
+        Domain.Entidades.MedicoUsuarioOperacional Obter(Guid codigo);
     }
 }

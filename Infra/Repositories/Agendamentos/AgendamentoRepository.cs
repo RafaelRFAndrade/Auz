@@ -139,5 +139,49 @@ namespace Infra.Repositories.Agendamentos
 
             return Database.SqlQueryRaw<ObterAgendamentosPorAtendimentoRawQuery>(sql, codigoAtendimento).ToList();
         }
+
+        public List<AgendamentoOperacionalRawQuery> ObterOperacional(Guid codigoUsuario, Guid codigoMedico, int pagina, int itensPorPagina)
+        {
+            const string sql =
+                """
+                SELECT 
+                	age.Codigo as 'CodigoAgendamento',
+                	pa.Nome AS 'NomePaciente',
+                	ate.Descricao AS 'NomeAtendimento',
+                	age.DtAgendamento AS 'DataAgendamento'
+                FROM 
+                	Agendamento AS age WITH(NOLOCK)
+                INNER JOIN 
+                	Atendimento AS ate WITH(NOLOCK) ON ate.CodigoUsuario = @p0
+                	AND Ate.CodigoMedico = @p1
+                INNER JOIN Paciente AS pa WITH(NOLOCK) ON pa.Codigo = ate.CodigoPaciente
+                WHERE
+                	age.CodigoAtendimento = ate.Codigo
+                ORDER BY age.DtAgendamento DESC OFFSET @p2 ROWS FETCH NEXT @p3 ROWS ONLY
+                """;
+
+            var offset = (pagina - 1) * itensPorPagina;
+
+            return Database.SqlQueryRaw<AgendamentoOperacionalRawQuery>(sql, codigoUsuario, codigoMedico, offset, itensPorPagina).ToList();
+        }
+
+        public CountRawQuery ObterTotalizadorOperacional(Guid codigoUsuario, Guid codigoMedico)
+        {
+            const string sql =
+                """
+                SELECT 
+                   COUNT(age.Codigo) AS 'Count'
+                FROM 
+                	Agendamento AS age WITH(NOLOCK)
+                INNER JOIN 
+                	Atendimento AS ate WITH(NOLOCK) ON ate.CodigoUsuario = @p0
+                	AND Ate.CodigoMedico = @p1
+                INNER JOIN Paciente AS pa WITH(NOLOCK) ON pa.Codigo = ate.CodigoPaciente
+                WHERE
+                	age.CodigoAtendimento = ate.Codigo
+                """;
+
+            return Database.SqlQueryRaw<CountRawQuery>(sql, codigoUsuario, codigoMedico).FirstOrDefault();
+        }
     }
 }

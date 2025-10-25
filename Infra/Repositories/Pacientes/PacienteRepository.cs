@@ -17,23 +17,27 @@ namespace Infra.Repositories.Pacientes
             SaveChanges();
         }
 
-        public IEnumerable<ListarPacientesRawQuery> Listar(string filtro, Guid codigoUsuario, int pagina, int itensPorPagina)
+        public IEnumerable<ListarPacientesRawQuery> Listar(string filtro, Guid codigoParceiro, int pagina, int itensPorPagina)
         {
             string sql =
                 """
                 SELECT 
-                   	Codigo,
-                   	Situacao,
-                   	Nome,
-                   	DtInclusao,
-                   	DtSituacao,
-                	DocumentoFederal,
-                   	Telefone,
-                	Email
+                   	pac.Codigo,
+                   	pac.Situacao,
+                   	pac.Nome,
+                   	pac.DtInclusao,
+                   	pac.DtSituacao,
+                	pac.DocumentoFederal,
+                   	pac.Telefone,
+                	pac.Email
                 FROM 
-                   	dbo.Paciente WITH(NOLOCK)
+                   	dbo.Paciente as pac WITH(NOLOCK)
+                INNER JOIN 
+                    dbo.Usuario AS us WITH(NOLOCK) ON us.CodigoParceiro = @p0
                 WHERE 
-                    CodigoUsuario =  @p0
+                    pac.CodigoUsuario = us.Codigo
+                AND
+                    pac.Situacao = 0
                 """;
 
             if (!string.IsNullOrWhiteSpace(filtro))
@@ -43,25 +47,29 @@ namespace Infra.Repositories.Pacientes
 
             var offset = (pagina - 1) * itensPorPagina;
 
-            return Database.SqlQueryRaw<ListarPacientesRawQuery>(sql, codigoUsuario, filtro, offset, itensPorPagina);
+            return Database.SqlQueryRaw<ListarPacientesRawQuery>(sql, codigoParceiro, filtro, offset, itensPorPagina);
         }
 
-        public CountRawQuery ObterTotalizador(string filtro, Guid codigoUsuario)
+        public CountRawQuery ObterTotalizador(string filtro, Guid codigoParceiro)
         {
             string sql =
                 """
                 SELECT 
-                	COUNT(*) as Count
+                	COUNT(pac.Codigo) as Count
                 FROM 
-                	dbo.Paciente WITH(NOLOCK)
+                	dbo.Paciente AS pac WITH(NOLOCK)
+                INNER JOIN 
+                    dbo.Usuario AS us WITH(NOLOCK) ON us.CodigoParceiro = @p0
                 WHERE 
-                    CodigoUsuario = @p0
+                    pac.CodigoUsuario = us.Codigo
+                AND
+                    pac.Situacao = 0
                 """;
 
             if (!string.IsNullOrWhiteSpace(filtro))
                 sql += " AND (Nome LIKE CONCAT('%', @p1, '%') OR Email LIKE CONCAT('%', @p1, '%') OR Telefone LIKE CONCAT('%', @p1, '%') OR DocumentoFederal LIKE CONCAT('%', @p1, '%'))";
 
-            return Database.SqlQueryRaw<CountRawQuery>(sql, codigoUsuario, filtro).FirstOrDefault();
+            return Database.SqlQueryRaw<CountRawQuery>(sql, codigoParceiro, filtro).FirstOrDefault();
         }
 
         public Paciente Obter(Guid codigo)
@@ -127,6 +135,63 @@ namespace Infra.Repositories.Pacientes
                 """;
 
             return Database.SqlQueryRaw<ListarDocumentosRawQuery>(sql, DocumentoFederal, codigoParceiro).ToList();
+        }
+
+        public IEnumerable<ListarPacientesRawQuery> ObterOperacional(string filtro, Guid codigoUsuario, Guid codigoMedico, int pagina, int itensPorPagina)
+        {
+            string sql =
+                """
+                SELECT DISTINCT
+                   	pac.Codigo,
+                   	pac.Situacao,
+                   	pac.Nome,
+                   	pac.DtInclusao,
+                   	pac.DtSituacao,
+                	pac.DocumentoFederal,
+                   	pac.Telefone,
+                	pac.Email
+                FROM 
+                   	dbo.Paciente as pac WITH(NOLOCK)
+                INNER JOIN 
+                    dbo.Atendimento AS ate WITH(NOLOCK) ON ate.CodigoUsuario = @p0
+                    AND ate.CodigoMedico = @p1
+                WHERE 
+                    pac.Codigo = ate.CodigoPaciente
+                AND
+                    pac.Situacao = 0
+                """;
+
+            if (!string.IsNullOrWhiteSpace(filtro))
+                sql += " AND (Nome LIKE CONCAT('%', @p2, '%') OR Email LIKE CONCAT('%', @p2, '%') OR Telefone LIKE CONCAT('%', @p2, '%') OR DocumentoFederal LIKE CONCAT('%', @p2, '%'))";
+
+            sql += " ORDER BY DtInclusao DESC OFFSET @p3 ROWS FETCH NEXT @p4 ROWS ONLY";
+
+            var offset = (pagina - 1) * itensPorPagina;
+
+            return Database.SqlQueryRaw<ListarPacientesRawQuery>(sql, codigoUsuario, codigoMedico, filtro, offset, itensPorPagina);
+        }
+
+        public CountRawQuery ObterTotalizadorOperacional(string filtro, Guid codigoUsuario, Guid codigoMedico)
+        {
+            string sql =
+                """
+                SELECT 
+                	COUNT(DISTINCT pac.Codigo) as Count
+                FROM 
+                	dbo.Paciente AS pac WITH(NOLOCK)
+                INNER JOIN 
+                    dbo.Atendimento AS ate WITH(NOLOCK) ON ate.CodigoUsuario = @p0
+                    AND ate.CodigoMedico = @p1
+                WHERE 
+                    pac.Codigo = ate.CodigoPaciente
+                AND
+                    pac.Situacao = 0
+                """;
+
+            if (!string.IsNullOrWhiteSpace(filtro))
+                sql += " AND (Nome LIKE CONCAT('%', @p2, '%') OR Email LIKE CONCAT('%', @p2, '%') OR Telefone LIKE CONCAT('%', @p2, '%') OR DocumentoFederal LIKE CONCAT('%', @p2, '%'))";
+
+            return Database.SqlQueryRaw<CountRawQuery>(sql, codigoUsuario, codigoMedico, filtro).FirstOrDefault();
         }
     }
 }

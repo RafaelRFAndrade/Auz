@@ -11,5 +11,7 @@ namespace Infra.Repositories.Agendamentos
         CountRawQuery ObterQtdAgendamentosPorParceiro(Guid codigoParceiro, DateTime diaInicial);
         bool VerificarDisponibilidade(Guid codigoAtendimento, DateTime dataAgendamento);
         List<ObterAgendamentosPorAtendimentoRawQuery> ObterAgendamentosPorAtendimento(Guid codigoAtendimento);
+        List<AgendamentoOperacionalRawQuery> ObterOperacional(Guid codigoUsuario, Guid codigoMedico, int pagina, int itensPorPagina);
+        CountRawQuery ObterTotalizadorOperacional(Guid codigoUsuario, Guid codigoMedico);
     }
 }

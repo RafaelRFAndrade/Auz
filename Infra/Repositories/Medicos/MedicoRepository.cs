@@ -60,6 +60,8 @@ namespace Infra.Repositories.Medicos
                 	dbo.Medico WITH(NOLOCK)
                 WHERE 
                     CodigoUsuario = @p0
+                AND
+                    Situacao = 0
                 """;
 
             if (!string.IsNullOrWhiteSpace(filtro))

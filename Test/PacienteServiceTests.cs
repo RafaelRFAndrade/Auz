@@ -7,6 +7,7 @@ using Domain.Entidades;
 using FluentAssertions;
 using Infra.RawQueryResult;
 using Infra.Repositories.Atendimentos;
+using Infra.Repositories.MedicoUsuarioOperacional;
 using Infra.Repositories.Pacientes;
 using Moq;
 
@@ -18,17 +19,20 @@ namespace Application.Tests.Services
         private readonly Mock<IAtendimentoRepository> _atendimentoRepoMock;
         private readonly Mock<IMapper> _mapperMock;
         private readonly PacienteService _service;
+        private readonly Mock<IMedicoUsuarioOperacionalRepository> _medicoUsuarioOperacionalRepository;
 
         public PacienteServiceTests()
         {
             _pacienteRepoMock = new Mock<IPacienteRepository>();
             _atendimentoRepoMock = new Mock<IAtendimentoRepository>();
             _mapperMock = new Mock<IMapper>();
+            _medicoUsuarioOperacionalRepository = new Mock<IMedicoUsuarioOperacionalRepository>();
 
             _service = new PacienteService(
                 _pacienteRepoMock.Object,
                 _mapperMock.Object,
-                _atendimentoRepoMock.Object
+                _atendimentoRepoMock.Object,
+                _medicoUsuarioOperacionalRepository.Object
             );
         }
 

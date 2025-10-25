@@ -52,9 +52,9 @@ namespace Web.Controllers
         {
             try
             {
-                var codigoUsuario = ObterCodigoUsuario();
+                var codigoParceiro = ObterCodigoParceiro();
 
-                var response = _pacienteService.Listar(request, codigoUsuario);
+                var response = _pacienteService.Listar(request, codigoParceiro);
 
                 return Ok(response);
             }
@@ -193,6 +193,29 @@ namespace Web.Controllers
                 var codigoParceiro = ObterCodigoParceiro();
 
                 var response = _pacienteService.BuscarDocumentos(cpf, codigoParceiro);
+
+                return Ok(response);
+            }
+            catch (AuzException ex)
+            {
+                return BadRequest(new { Sucesso = false, Mensagem = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return StatusCode(500, new { Sucesso = false, Mensagem = "Ocorreu um erro na requisição." });
+            }
+        }
+
+        [Authorize]
+        [HttpGet("Operacional")]
+        public ActionResult<ListarPacienteResponse> ObterOperacional([FromQuery] ObterOperacionalRequest request)
+        {
+            try
+            {
+                var codigoParceiro = ObterCodigoParceiro();
+
+                var response = _pacienteService.ObterOperacional(request);
 
                 return Ok(response);
             }
