@@ -89,7 +89,7 @@ namespace Infra.Repositories.Usuarios
                 FROM 	
                 	dbo.Usuario WITH(NOLOCK) 
                 WHERE 
-                	CodigoParceiro = @p0
+                	CodigoParceiro = @p0 AND Situacao = 0 
                 """;
 
             if (!string.IsNullOrWhiteSpace(filtro))
@@ -111,7 +111,7 @@ namespace Infra.Repositories.Usuarios
                 FROM 	
                 	dbo.Usuario WITH(NOLOCK) 
                 WHERE 
-                	CodigoParceiro = @p0
+                	CodigoParceiro = @p0 AND Situacao = 0 
                 """;
 
             if (!string.IsNullOrWhiteSpace(filtro))

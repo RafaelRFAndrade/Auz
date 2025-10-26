@@ -13,5 +13,6 @@ namespace Application.Interfaces
         AgendamentosHomeResponse ListarHome(ListarRequest request, Guid codigoParceiro);
         Agendamento Obter(Guid codigoAgendamento);
         void AtualizarDetalhado(AtualizarDetalhadoRequest request);
+        DetalhadoAtendimentoResponse ListarDetalhadoAtendimentos(DetalhadoAtendimentoRequest request);
     }
 }

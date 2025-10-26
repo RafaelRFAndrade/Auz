@@ -155,7 +155,7 @@ namespace Infra.Repositories.Agendamentos
             return Database.SqlQueryRaw<CountRawQuery>(sql, codigoAtendimento, dataAgendamento.AddHours(-1), dataAgendamento.AddHours(1), Situacao.Ativo).FirstOrDefault().Count > 0;
         }
 
-        public List<ObterAgendamentosPorAtendimentoRawQuery> ObterAgendamentosPorAtendimento(Guid codigoAtendimento)
+        public List<ObterAgendamentosPorAtendimentoRawQuery> ObterAgendamentosPorAtendimento(Guid codigoAtendimento, int pagina, int itensPorPagina)
         {
             const string sql =
                 """
@@ -164,10 +164,28 @@ namespace Infra.Repositories.Agendamentos
                 FROM 
                     Agendamento 
                 WHERE 
-                    CodigoAtendimento = @p0      
+                    CodigoAtendimento = @p0     
+                ORDER BY DtAgendamento DESC OFFSET @p1 ROWS FETCH NEXT @p2 ROWS ONLY
                 """;
 
-            return Database.SqlQueryRaw<ObterAgendamentosPorAtendimentoRawQuery>(sql, codigoAtendimento).ToList();
+            var offset = (pagina - 1) * itensPorPagina;
+
+            return Database.SqlQueryRaw<ObterAgendamentosPorAtendimentoRawQuery>(sql, codigoAtendimento, offset, itensPorPagina).ToList();
+        }
+
+        public CountRawQuery ObterTotalizadorAgendamentosPorAtendimento(Guid codigoAtendimento)
+        {
+            const string sql =
+                """
+                SELECT 
+                    COUNT(Codigo) as 'Count'
+                FROM 
+                    Agendamento 
+                WHERE 
+                    CodigoAtendimento = @p0     
+                """;
+
+            return Database.SqlQueryRaw<CountRawQuery>(sql, codigoAtendimento).FirstOrDefault();
         }
 
         public List<AgendamentoOperacionalRawQuery> ObterOperacional(Guid codigoUsuario, Guid codigoMedico, int pagina, int itensPorPagina)

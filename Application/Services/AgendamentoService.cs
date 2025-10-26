@@ -134,5 +134,28 @@ namespace Application.Services
 
             _agendamentoRepository.Atualizar(agendamento);
         }
+
+        public DetalhadoAtendimentoResponse ListarDetalhadoAtendimentos(DetalhadoAtendimentoRequest request)
+        {
+            var pagina = Math.Max(1, request.Pagina.GetValueOrDefault(1));
+
+            var itensPorPagina = request.ItensPorPagina.GetValueOrDefault(10);
+            if (itensPorPagina <= 0) itensPorPagina = 10;
+
+            var agendamentos = _agendamentoRepository.ObterAgendamentosPorAtendimento(request.CodigoAtendimento, pagina, itensPorPagina);
+
+            var totalizador = _agendamentoRepository.ObterTotalizadorAgendamentosPorAtendimento(request.CodigoAtendimento);
+            var totalItens = totalizador?.Count ?? 0;
+
+            var totalPaginas = (int)Math.Ceiling((double)totalItens / itensPorPagina);
+            totalPaginas = Math.Max(1, totalPaginas);
+
+            return new DetalhadoAtendimentoResponse
+            {
+                Agendamentos = agendamentos,
+                TotalPaginas = totalPaginas,
+                Itens = totalItens
+            };
+        }
     }
 }

@@ -11,10 +11,11 @@ namespace Infra.Repositories.Agendamentos
         List<AgendamentoRawQueryResult> ObterAgendamentosPorParceiro(Guid codigoParceiro, DateTime diaInicial);
         CountRawQuery ObterQtdAgendamentosPorParceiro(Guid codigoParceiro, DateTime diaInicial);
         bool VerificarDisponibilidade(Guid codigoAtendimento, DateTime dataAgendamento);
-        List<ObterAgendamentosPorAtendimentoRawQuery> ObterAgendamentosPorAtendimento(Guid codigoAtendimento);
         List<AgendamentoOperacionalRawQuery> ObterOperacional(Guid codigoUsuario, Guid codigoMedico, int pagina, int itensPorPagina);
         CountRawQuery ObterTotalizadorOperacional(Guid codigoUsuario, Guid codigoMedico);
         Agendamento Obter(Guid codigoAgendamento);
         void Atualizar(Agendamento agendamento);
+        List<ObterAgendamentosPorAtendimentoRawQuery> ObterAgendamentosPorAtendimento(Guid codigoAtendimento, int pagina, int itensPorPagina);
+        CountRawQuery ObterTotalizadorAgendamentosPorAtendimento(Guid codigoAtendimento);
     }
 }
