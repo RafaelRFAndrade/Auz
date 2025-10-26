@@ -240,7 +240,6 @@ namespace Application.Tests.Services
             var agendamentos = new List<ObterAgendamentosPorAtendimentoRawQuery> { new ObterAgendamentosPorAtendimentoRawQuery() };
 
             _atendimentoRepoMock.Setup(r => r.ObterAtendimento(codigo)).Returns(atendimento);
-            _documentoRepoMock.Setup(r => r.ObterDocumentosPorCodigoEntidade(codigo)).Returns(documentos);
             _agendamentoRepoMock.Setup(r => r.ObterAgendamentosPorAtendimento(codigo)).Returns(agendamentos);
 
             _mapperMock
@@ -255,7 +254,6 @@ namespace Application.Tests.Services
 
             // Assert
             response.DescricaoAtendimento.Should().Be("Consulta Teste");
-            response.Documentos.Should().HaveCount(1);
             response.Agendamentos.Should().HaveCount(1);
         }
     }

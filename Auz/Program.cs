@@ -24,6 +24,7 @@ using Microsoft.AspNetCore.Http.Features;
 using Application.Messaging.Request.Usuario;
 using Application.Messaging.Request.Parceiro;
 using Infra.Repositories.MedicoUsuarioOperacional;
+using Application.Messaging.Request.Agendamento;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -109,6 +110,7 @@ builder.Services.AddAutoMapper(config => {
     config.CreateMap<AtualizarPacienteDetalhadoRequest, Paciente>();
     config.CreateMap<AtualizarUsuarioRequest, Usuario>();
     config.CreateMap<AtualizarParceiroRequest, Parceiro>();
+    config.CreateMap<AtualizarDetalhadoRequest, Agendamento>();
 });
 
 builder.Services.Configure<FormOptions>(options =>

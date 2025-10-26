@@ -18,7 +18,7 @@ namespace Infra.Repositories.Atendimentos
             SaveChanges();  
         }
 
-        public IEnumerable<ObterAtendimentosRawQuery> ObterAtendimentosPorCodigoUsuario(Guid codigoUsuario)
+        public IEnumerable<ObterAtendimentosRawQuery> ObterAtendimentosPorCodigoUsuario(Guid codigoParceiro)
         {
             const string sql =
                 """
@@ -34,13 +34,15 @@ namespace Infra.Repositories.Atendimentos
                 	dbo.Medico AS me WITH(NOLOCK) ON me.Codigo = ate.CodigoMedico
                 INNER JOIN 
                 	dbo.Paciente AS pa WITH(NOLOCK) ON pa.Codigo = ate.CodigoPaciente
-                INNER JOIN 
-                    dbo.Usuario AS us WITH(NOLOCK) ON us.Codigo = ate.CodigoUsuario
+                INNER JOIN
+                    dbo.Usuario AS us WITH(NOLOCK) ON us.CodigoParceiro = @p0
                 WHERE 
-                	ate.CodigoUsuario = @p0
+                	ate.CodigoUsuario =  us.Codigo
+                AND 
+                    Situacao = @p1 
                 """;
 
-            return Database.SqlQueryRaw<ObterAtendimentosRawQuery>(sql, codigoUsuario);
+            return Database.SqlQueryRaw<ObterAtendimentosRawQuery>(sql, codigoParceiro, Situacao.Ativo);
         }
 
         public bool ValidarAtendimentoAtivosPorMedico(Guid codigoMedico)

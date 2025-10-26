@@ -9,6 +9,7 @@ using FluentAssertions;
 using Infra.RawQueryResult;
 using Infra.Repositories.Agendamentos;
 using Infra.Repositories.Atendimentos;
+using Infra.Repositories.Medicos;
 using Infra.Repositories.MedicoUsuarioOperacional;
 using Infra.Repositories.Parceiro;
 using Infra.Repositories.Usuarios;
@@ -27,6 +28,7 @@ namespace Application.Tests.Services
         private readonly Mock<IMapper> _mapper;
         private readonly Mock<IMedicoUsuarioOperacionalRepository> _medicoUsuarioOperacionalRepository;
         private readonly UsuarioService _service;
+        private readonly Mock<IMedicoRepository> _medicoRepository;
 
         public UsuarioServiceTests()
         {
@@ -37,6 +39,7 @@ namespace Application.Tests.Services
             _parceiroRepositoryMock = new Mock<IParceiroRepository>();
             _medicoUsuarioOperacionalRepository = new Mock<IMedicoUsuarioOperacionalRepository>();
             _mapper = new Mock<IMapper>();
+            _medicoRepository = new Mock<IMedicoRepository>();
 
             _service = new UsuarioService(
                 _usuarioRepositoryMock.Object,
@@ -45,7 +48,8 @@ namespace Application.Tests.Services
                 _agendamentoRepositoryMock.Object,
                 _parceiroRepositoryMock.Object,
                 _mapper.Object,
-                _medicoUsuarioOperacionalRepository.Object
+                _medicoUsuarioOperacionalRepository.Object,
+                _medicoRepository.Object
             );
         }
 
@@ -167,8 +171,14 @@ namespace Application.Tests.Services
             _usuarioRepositoryMock.Setup(r => r.ObterNome(codigoUsuario))
                 .Returns((new StringRawQuery { String = "Usuario Teste" }));
 
+            _usuarioRepositoryMock.Setup(r => r.ObterQtdUsuariosPorParceiro(codigoUsuario))
+             .Returns((new CountRawQuery { Count = 1 }));
+
+            _medicoRepository.Setup(r => r.ObterQtdOperadoresPorParceiro(codigoUsuario))
+            .Returns((new CountRawQuery { Count = 1 }));
+
             // Act
-            var result = _service.CarregarRelacionamentos(codigoUsuario, codigoParceiro);
+            var result = _service.TrazerHome(codigoUsuario, codigoParceiro);
 
             // Assert
             result.Sucesso.Should().BeTrue();

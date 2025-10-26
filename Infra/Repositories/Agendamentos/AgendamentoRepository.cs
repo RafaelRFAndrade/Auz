@@ -19,11 +19,11 @@ namespace Infra.Repositories.Agendamentos
             SaveChanges();
         }
 
-        public IEnumerable<ObterAgendamentosRawQuery> ObterAgendamentosPorCodigoUsuario(Guid codigoUsuario)
+        public List<ObterAgendamentosRawQuery> ObterAgendamentosPorParceiro(Guid codigoParceiro, int pagina, int itensPorPagina)
         {
             const string sql =
                 """
-                SELECT TOP 10
+                SELECT
                 	age.Descricao as NomeAgendamento,
                 	age.Situacao,
                 	ate.Descricao as NomeAtendimento,
@@ -42,13 +42,43 @@ namespace Infra.Repositories.Agendamentos
                 WHERE 
                 	age.CodigoUsuario = us.Codigo
                 AND DtAgendamento BETWEEN @p1 AND @p2
+                ORDER BY age.DtAgendamento DESC OFFSET @p3 ROWS FETCH NEXT @p4 ROWS ONLY
+                """
+            ;
+            var offset = (pagina - 1) * itensPorPagina;
+
+            return Database.SqlQueryRaw<ObterAgendamentosRawQuery>(sql,
+                codigoParceiro,
+                DatetimeHelper.NormalizarInicioSemana(DateTime.Now),
+                DatetimeHelper.NormalizarFimSemana(DateTime.Now), offset, itensPorPagina).ToList();
+        }
+
+        public CountRawQuery ObterTotalizadorAgendamentosPorParceiro(Guid codigoParceiro)
+        {
+            const string sql =
+                """
+                SELECT
+                	COUNT(age.Codigo) as 'Count'
+                FROM 	
+                	dbo.Agendamento AS age WITH(NOLOCK)
+                INNER JOIN 
+                	dbo.Atendimento AS ate WITH(NOLOCK) ON ate.Codigo = age.CodigoAtendimento
+                INNER JOIN 
+                	dbo.Medico AS me WITH(NOLOCK) ON me.Codigo = ate.CodigoMedico
+                INNER JOIN 
+                	dbo.Paciente AS pa WITH(NOLOCK) ON pa.Codigo = ate.CodigoPaciente
+                INNER JOIN 
+                    dbo.Usuario AS us WITH(NOLOCK) ON us.CodigoParceiro = @p0
+                WHERE 
+                	age.CodigoUsuario = us.Codigo
+                AND DtAgendamento BETWEEN @p1 AND @p2
                 """
             ;
 
-            return Database.SqlQueryRaw<ObterAgendamentosRawQuery>(sql,
-                codigoUsuario,
+            return Database.SqlQueryRaw<CountRawQuery>(sql,
+                codigoParceiro,
                 DatetimeHelper.NormalizarInicioSemana(DateTime.Now),
-                DatetimeHelper.NormalizarFimSemana(DateTime.Now));
+                DatetimeHelper.NormalizarFimSemana(DateTime.Now)).FirstOrDefault();
         }
 
         public List<AgendamentoRawQueryResult> ObterAgendamentosPorParceiro(Guid codigoParceiro, DateTime diaInicial)
@@ -182,6 +212,27 @@ namespace Infra.Repositories.Agendamentos
                 """;
 
             return Database.SqlQueryRaw<CountRawQuery>(sql, codigoUsuario, codigoMedico).FirstOrDefault();
+        }
+
+        public Agendamento Obter(Guid codigoAgendamento)
+        {
+            const string sql =
+                """
+                SELECT 
+                    * 
+                FROM 
+                    Agendamento 
+                WHERE 
+                    Codigo = @p0      
+                """;
+
+            return Database.SqlQueryRaw<Agendamento>(sql, codigoAgendamento).FirstOrDefault();
+        }
+
+        public void Atualizar(Agendamento agendamento)
+        {
+            Update(agendamento);
+            SaveChanges();
         }
     }
 }

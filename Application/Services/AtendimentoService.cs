@@ -119,8 +119,6 @@ namespace Application.Services
         {
             var atendimento = _atendimentoRepository.ObterAtendimento(codigoAtendimento);
 
-            var documentos = _documentoRepository.ObterDocumentosPorCodigoEntidade(codigoAtendimento);
-
             var agendamentos = _agendamentoRepository.ObterAgendamentosPorAtendimento(codigoAtendimento);
 
             var response = new ObterAtendimentoResponse();
@@ -128,7 +126,6 @@ namespace Application.Services
             _mapper.Map(atendimento, response);
 
             response.Agendamentos = agendamentos;
-            response.Documentos = documentos;
 
             return response;
         }

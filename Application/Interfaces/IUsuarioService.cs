@@ -10,7 +10,7 @@ namespace Application.Interfaces
     {
         void Cadastrar(CadastroUsuarioRequest request);
         Usuario Login(LoginRequest request);
-        ValoresHomeResponse CarregarRelacionamentos(Guid codigoUsuario, Guid codigoParceiro);
+        ValoresHomeResponse TrazerHome(Guid codigoUsuario, Guid codigoParceiro);
         ObterUsuariosParceiroResponse ObterUsuariosPorParceiro(Guid codigoParceiro, ObterUsuariosPorParceiroRequest request);
         void CadastrarParceiroJaExistente(CadastroUsuarioParceiroJaExistenteRequest request, Guid codigoParceiro);
         void Desativar(DesativarUsuarioRequest request);

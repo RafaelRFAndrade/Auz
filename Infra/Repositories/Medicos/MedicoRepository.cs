@@ -136,5 +136,23 @@ namespace Infra.Repositories.Medicos
 
             return Database.SqlQueryRaw<ListarDocumentosRawQuery>(sql, DocumentoFederal, codigoParceiro).ToList();
         }
+
+        public CountRawQuery ObterQtdOperadoresPorParceiro(Guid codigoParceiro)
+        {
+            string sql =
+                """
+                SELECT 
+                    COUNT(me.Codigo) as Count
+                FROM 	
+                	dbo.Medico AS me WITH(NOLOCK) 
+                INNER JOIN 
+                    Usuario AS us WITH(NOLOCK) 
+                    ON us.CodigoParceiro = @p0
+                WHERE 
+                	CodigoUsuario = us.Codigo
+                """;
+
+            return Database.SqlQueryRaw<CountRawQuery>(sql, codigoParceiro).FirstOrDefault();
+        }
     }
 }

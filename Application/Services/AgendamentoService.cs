@@ -1,12 +1,13 @@
 ﻿using Application.Interfaces;
 using Application.Messaging.Exception;
+using Application.Messaging.Request;
 using Application.Messaging.Request.Agendamento;
 using Application.Messaging.Response.Agendamento;
+using AutoMapper;
 using Domain.Entidades;
-using Infra.RawQueryResult;
 using Infra.Repositories.Agendamentos;
 using Infra.Repositories.MedicoUsuarioOperacional;
-using System.Linq.Expressions;
+using Microsoft.VisualBasic;
 
 namespace Application.Services
 {
@@ -14,12 +15,15 @@ namespace Application.Services
     {
         private readonly IAgendamentoRepository _agendamentoRepository;
         private readonly IMedicoUsuarioOperacionalRepository _medicoUsuarioOperacionalRepository;
+        private readonly IMapper _mapper;
 
         public AgendamentoService(IAgendamentoRepository agendamentoRepository,
-            IMedicoUsuarioOperacionalRepository medicoUsuarioOperacionalRepository)
+            IMedicoUsuarioOperacionalRepository medicoUsuarioOperacionalRepository,
+            IMapper mapper)
         {
             _agendamentoRepository = agendamentoRepository;
             _medicoUsuarioOperacionalRepository = medicoUsuarioOperacionalRepository;
+            _mapper = mapper;
         }
 
         public void Cadastrar(CadastroAgendamentoRequest request, Guid codigoUsuario)
@@ -86,6 +90,49 @@ namespace Application.Services
                 TotalPaginas = totalPaginas,
                 Itens = totalItens
             };
+        }
+
+        public AgendamentosHomeResponse ListarHome(ListarRequest request, Guid codigoParceiro)
+        {
+            var pagina = Math.Max(1, request.Pagina.GetValueOrDefault(1));
+
+            var itensPorPagina = request.ItensPorPagina.GetValueOrDefault(10);
+            if (itensPorPagina <= 0) itensPorPagina = 10;
+
+            var agendamentos = _agendamentoRepository.ObterAgendamentosPorParceiro(codigoParceiro, pagina, itensPorPagina);
+
+            var totalizador = _agendamentoRepository.ObterTotalizadorAgendamentosPorParceiro(codigoParceiro);
+            var totalItens = totalizador?.Count ?? 0;
+
+            var totalPaginas = (int)Math.Ceiling((double)totalItens / itensPorPagina);
+            totalPaginas = Math.Max(1, totalPaginas);
+
+            return new AgendamentosHomeResponse
+            {
+                Agendamentos = agendamentos,
+                TotalPaginas = totalPaginas,
+                Itens = totalItens
+            };
+        }
+
+        public Agendamento Obter(Guid codigoAgendamento)
+        {
+            var agendamento = _agendamentoRepository.Obter(codigoAgendamento)
+                ?? throw new AuzException("Agendamento não encontrado.");
+
+            return agendamento;
+        }
+
+        public void AtualizarDetalhado(AtualizarDetalhadoRequest request)
+        {
+            var agendamento = _agendamentoRepository.Obter(request.Codigo)
+                ?? throw new AuzException("Agendamento não encontrado.");
+
+            _mapper.Map(request, agendamento);  
+
+            agendamento.DtSituacao = DateTime.Now;
+
+            _agendamentoRepository.Atualizar(agendamento);
         }
     }
 }

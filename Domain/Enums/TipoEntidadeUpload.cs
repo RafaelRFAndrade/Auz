@@ -4,6 +4,7 @@
     {
         Usuario,
         Atendimento,
-        Perfil
+        Perfil,
+        Agendamento
     }
 }

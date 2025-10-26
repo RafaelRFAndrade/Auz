@@ -18,7 +18,7 @@ namespace Infra.Repositories.Documentos
             SaveChanges();
         }
 
-        public List<DocumentoRawQuery> ObterDocumentosPorCodigoEntidade(Guid codigoEntidade)
+        public List<DocumentoRawQuery> ObterDocumentosPorCodigoEntidade(Guid codigoEntidade, int pagina, int itensPorPagina)
         {
             const string sql =
                """
@@ -33,9 +33,27 @@ namespace Infra.Repositories.Documentos
                     Documento AS do WITH(NOLOCK) 
                 WHERE 
                     do.CodigoEntidade = @p0
+                ORDER BY DtInclusao DESC OFFSET @p1 ROWS FETCH NEXT @p2 ROWS ONLY
                 """;
 
-            return Database.SqlQueryRaw<DocumentoRawQuery>(sql, codigoEntidade).ToList();
+            var offset = (pagina - 1) * itensPorPagina;
+
+            return Database.SqlQueryRaw<DocumentoRawQuery>(sql, codigoEntidade, offset, itensPorPagina).ToList();
+        }
+
+        public CountRawQuery ObterTotalizadorDocumentosPorCodigoEntidade(Guid codigoEntidade)
+        {
+            const string sql =
+               """
+                SELECT 
+                    COUNT(do.Codigo) as 'Count'
+                FROM 
+                    Documento AS do WITH(NOLOCK) 
+                WHERE 
+                    do.CodigoEntidade = @p0
+                """;
+
+            return Database.SqlQueryRaw<CountRawQuery>(sql, codigoEntidade).FirstOrDefault();
         }
 
         public ObterDadosDocumentoRawQuery ObterCaminhoPorCodigo(Guid codigoDocumento)

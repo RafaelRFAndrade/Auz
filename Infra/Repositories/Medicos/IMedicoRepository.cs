@@ -12,5 +12,6 @@ namespace Infra.Repositories.Medicos
         void Atualizar(Medico medico);
         Medico ObterPorDocumentoFederal(string DocumentoFederal, Guid codigoParceiro);
         List<ListarDocumentosRawQuery> ObterDocumentos(string DocumentoFederal, Guid codigoParceiro);
+        CountRawQuery ObterQtdOperadoresPorParceiro(Guid codigoParceiro);
     }
 }

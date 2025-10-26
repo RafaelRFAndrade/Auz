@@ -8,6 +8,7 @@ using Domain.Entidades;
 using Domain.Enums;
 using Infra.Repositories.Agendamentos;
 using Infra.Repositories.Atendimentos;
+using Infra.Repositories.Medicos;
 using Infra.Repositories.MedicoUsuarioOperacional;
 using Infra.Repositories.Parceiro;
 using Infra.Repositories.Usuarios;
@@ -25,6 +26,7 @@ namespace Application.Services
         private readonly IParceiroRepository _parceiroRepository;
         private readonly IMapper _mapper;
         private readonly IMedicoUsuarioOperacionalRepository _medicoUsuarioOperacionalRepository;
+        private readonly IMedicoRepository _medicoRepository;
 
         public UsuarioService(IUsuarioRepository usuarioRepository,
             IAutenticacaoService autenticacaoService,
@@ -32,7 +34,8 @@ namespace Application.Services
             IAgendamentoRepository agendamentoRepository,
             IParceiroRepository parceiroRepository,
             IMapper mapper,
-            IMedicoUsuarioOperacionalRepository medicoUsuarioOperacionalRepository)
+            IMedicoUsuarioOperacionalRepository medicoUsuarioOperacionalRepository,
+            IMedicoRepository medicoRepository)
         {
             _usuarioRepository = usuarioRepository;
             _autenticacaoService = autenticacaoService;
@@ -41,6 +44,7 @@ namespace Application.Services
             _parceiroRepository = parceiroRepository;
             _mapper = mapper;
             _medicoUsuarioOperacionalRepository = medicoUsuarioOperacionalRepository;
+            _medicoRepository = medicoRepository;
         }
 
         public void Cadastrar(CadastroUsuarioRequest request)
@@ -105,18 +109,19 @@ namespace Application.Services
             return usuario;
         }
 
-        public ValoresHomeResponse CarregarRelacionamentos(Guid codigoUsuario, Guid codigoParceiro)
+        public ValoresHomeResponse TrazerHome(Guid codigoUsuario, Guid codigoParceiro)
         {
             var nomeUsuario = _usuarioRepository.ObterNome(codigoUsuario);
-            var atendimentos = _atendimentoRepository.ObterAtendimentosPorCodigoUsuario(codigoUsuario);
 
-            var agendamentos = _agendamentoRepository.ObterAgendamentosPorCodigoUsuario(codigoParceiro);
+            var qtdUsuarios = _usuarioRepository.ObterQtdUsuariosPorParceiro(codigoParceiro);
+
+            var qtdOperadores = _medicoRepository.ObterQtdOperadoresPorParceiro(codigoParceiro);
 
             return new ValoresHomeResponse
             {
                 NomeUsuario = nomeUsuario.String,
-                Agendamentos = agendamentos,
-                Atendimentos = atendimentos,
+                QtdOperadores = qtdOperadores?.Count,
+                QtdUsuarios = qtdUsuarios?.Count,
                 Sucesso = true
             };
         }

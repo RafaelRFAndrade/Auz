@@ -1,5 +1,6 @@
 ﻿using Application.Interfaces;
 using Application.Messaging.Request;
+using Application.Messaging.Request.Documento;
 using Application.Messaging.Response;
 using Application.Messaging.Response.Documento;
 using Domain.Entidades;
@@ -85,6 +86,29 @@ namespace Application.Services
             };
         }
 
+        public ListarDocumentosResponse Listar(ListarDocumentosRequest request)
+        {
+            var pagina = Math.Max(1, request.Pagina.GetValueOrDefault(1));
+
+            var itensPorPagina = request.ItensPorPagina.GetValueOrDefault(10);
+            if (itensPorPagina <= 0) itensPorPagina = 10;
+
+            var documentos = _documentoRepository.ObterDocumentosPorCodigoEntidade(request.CodigoEntidade, pagina, itensPorPagina);
+
+            var totalizador = _documentoRepository.ObterTotalizadorDocumentosPorCodigoEntidade(request.CodigoEntidade);
+            var totalItens = totalizador?.Count ?? 0;
+
+            var totalPaginas = (int)Math.Ceiling((double)totalItens / itensPorPagina);
+            totalPaginas = Math.Max(1, totalPaginas);
+
+            return new ListarDocumentosResponse
+            {
+                Documentos =documentos,
+                TotalPaginas = totalPaginas,
+                Itens = totalItens
+            };
+        }
+
         private string ObterNomeEntidade(TipoEntidadeUpload tipoEntidadeUpload)
         {
             return tipoEntidadeUpload switch
@@ -92,6 +116,7 @@ namespace Application.Services
                 TipoEntidadeUpload.Usuario => "Usuario",
                 TipoEntidadeUpload.Atendimento => "Atendimento",
                 TipoEntidadeUpload.Perfil => "Perfil",
+                TipoEntidadeUpload.Agendamento => "Agendamento",
                 _ => String.Empty,
             };
         }
@@ -103,6 +128,7 @@ namespace Application.Services
                 TipoEntidadeUpload.Usuario => "Documentos",
                 TipoEntidadeUpload.Atendimento => "Atendimentos",
                 TipoEntidadeUpload.Perfil => "Perfil",
+                TipoEntidadeUpload.Agendamento => "Agendamento",
                 _ => String.Empty,
             };
         }

@@ -18,7 +18,6 @@ namespace Application.Messaging.Response.Atendimento
         public string NomePaciente { get; set; }
         public string TelefonePaciente { get; set; }
 
-        public List<DocumentoRawQuery> Documentos {  get; set; }
         public List<ObterAgendamentosPorAtendimentoRawQuery> Agendamentos {  get; set; }
     }
 }

@@ -188,7 +188,7 @@ namespace Web.Controllers
             {
                 var codigoUsuario = ObterCodigoUsuario();
                 var codigoParceiro = ObterCodigoParceiro(); 
-                var response = _usuarioService.CarregarRelacionamentos(codigoUsuario, codigoParceiro);
+                var response = _usuarioService.TrazerHome(codigoUsuario, codigoParceiro);
 
                 return Ok(response);
             }

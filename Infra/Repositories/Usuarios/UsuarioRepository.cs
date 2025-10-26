@@ -119,5 +119,20 @@ namespace Infra.Repositories.Usuarios
 
             return Database.SqlQueryRaw<CountRawQuery>(sql, codigoParceiro, filtro).FirstOrDefault();
         }
+
+        public CountRawQuery ObterQtdUsuariosPorParceiro(Guid codigoParceiro)
+        {
+            string sql =
+                """
+                SELECT 
+                    COUNT(*) as Count
+                FROM 	
+                	dbo.Usuario WITH(NOLOCK) 
+                WHERE 
+                	CodigoParceiro = @p0
+                """;
+
+            return Database.SqlQueryRaw<CountRawQuery>(sql, codigoParceiro).FirstOrDefault();
+        }
     }
 }

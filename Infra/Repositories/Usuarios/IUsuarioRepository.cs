@@ -13,5 +13,6 @@ namespace Infra.Repositories.Usuarios
         CountRawQuery ObterTotalizador(Guid codigoParceiro, string filtro);
         void Atualizar(Usuario usuario);
         Usuario? Obter(Guid codigo);
+        CountRawQuery ObterQtdUsuariosPorParceiro(Guid codigoParceiro);
     }
 }

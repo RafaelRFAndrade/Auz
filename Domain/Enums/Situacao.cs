@@ -3,6 +3,8 @@
     public enum Situacao
     {
         Ativo,
-        Desativo
+        Desativo,
+        Confirmado,
+        Cancelado
     }
 }
