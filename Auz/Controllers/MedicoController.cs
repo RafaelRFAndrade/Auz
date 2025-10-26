@@ -4,6 +4,7 @@ using Application.Messaging.Exception;
 using Application.Messaging.Request;
 using Application.Messaging.Request.Medico;
 using Application.Messaging.Response.Medico;
+using Application.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Web.Controllers.Base;
@@ -275,6 +276,27 @@ namespace Web.Controllers
             catch (AmazonS3Exception ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
             {
                 return NotFound(new { Sucesso = false, Mensagem = "Arquivo não encontrado." });
+            }
+            catch (AuzException ex)
+            {
+                return BadRequest(new { Sucesso = false, Mensagem = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return StatusCode(500, new { Sucesso = false, Mensagem = "Ocorreu um erro na requisição." });
+            }
+        }
+
+        [HttpGet("UsuariosRelacionados")]
+        [Authorize]
+        public IActionResult ObterUsuarioMedicoOperacional([FromQuery] UsuariosVinculadosRequest listarRequest)
+        {
+            try
+            {
+                var response = _medicoService.ObterUsuariosVinculados(listarRequest);
+
+                return Ok(response);
             }
             catch (AuzException ex)
             {

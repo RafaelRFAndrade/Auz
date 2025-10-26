@@ -17,5 +17,6 @@ namespace Application.Interfaces
         List<ListarDocumentosRawQuery> BuscarDocumentos(string documentoFederal, Guid codigoParceiro);
         ObterMedicoDetalhadoResponse ObterMedicoDetalhado(Guid codigoMedico);
         void AtualizarCompleto(AtualizarCompletoRequest request, Guid codigoUsuario);
+        UsuariosVinculadosResponse ObterUsuariosVinculados(UsuariosVinculadosRequest request);
     }
 }

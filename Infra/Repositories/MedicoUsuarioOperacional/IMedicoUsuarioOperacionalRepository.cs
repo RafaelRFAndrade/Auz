@@ -10,5 +10,7 @@ namespace Infra.Repositories.MedicoUsuarioOperacional
         CountRawQuery TotalizarRelacionamentos(Guid codigoUsuario, string filtro);
         bool VerificarRelacionamento(Guid codigoUsuario, Guid codigoMedico);
         Domain.Entidades.MedicoUsuarioOperacional Obter(Guid codigo);
+        List<UsuariosVinculadosRawQuery> ListarUsuariosVinculados(Guid codigoMedico, int pagina, int itens);
+        CountRawQuery TotalizarUsuariosVinculados(Guid codigoMedico);
     }
 }

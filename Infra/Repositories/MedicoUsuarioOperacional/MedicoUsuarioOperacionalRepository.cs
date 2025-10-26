@@ -97,5 +97,45 @@ namespace Infra.Repositories.MedicoUsuarioOperacional
 
             return Database.SqlQueryRaw<Domain.Entidades.MedicoUsuarioOperacional>(sql, codigo).FirstOrDefault();
         }
+
+        public List<UsuariosVinculadosRawQuery> ListarUsuariosVinculados(Guid codigoMedico, int pagina, int itens)
+        {
+            string sql =
+                """
+                SELECT 
+                    us.Nome as 'NomeUsuario',
+                    us.Email as 'EmailUsuario',
+                    muo.DtInclusao as 'DtVinculo'
+                FROM 
+                    dbo.MedicoUsuarioOperacional AS muo WITH(NOLOCK)
+                INNER JOIN 
+                    dbo.Usuario AS us WITH(NOLOCK) ON us.Codigo = muo.CodigoUsuario
+                WHERE
+                    muo.CodigoMedico = @p0 AND muo.Ativo = 1
+                """;
+
+            sql += " ORDER BY muo.DtInclusao DESC OFFSET @p1 ROWS FETCH NEXT @p2 ROWS ONLY";
+
+            var offset = (pagina - 1) * itens;
+
+            return Database.SqlQueryRaw<UsuariosVinculadosRawQuery>(sql, codigoMedico, offset, itens).ToList();
+        }
+
+        public CountRawQuery TotalizarUsuariosVinculados(Guid codigoMedico)
+        {
+            string sql =
+                """
+                SELECT 
+                    COUNT(muo.Codigo) as 'Count'
+                FROM 
+                    dbo.MedicoUsuarioOperacional AS muo WITH(NOLOCK)
+                INNER JOIN 
+                    dbo.Usuario AS us WITH(NOLOCK) ON us.Codigo = muo.CodigoUsuario
+                WHERE
+                    muo.CodigoMedico = @p0 AND muo.Ativo = 1
+                """;
+
+            return Database.SqlQueryRaw<CountRawQuery>(sql, codigoMedico).FirstOrDefault();
+        }
     }
 }

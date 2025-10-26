@@ -36,10 +36,13 @@ namespace Application.Services
 
                 var contentType = uploadDocumentoRequest.File.ContentType ?? "application/octet-stream";
 
-                var url = await _awsService.UploadFileAsync(fileBytes, uploadDocumentoRequest.File.FileName, contentType, ObterCaminhoFolder(tipoEntidadeUpload));
+                var codigoDocumento = Guid.NewGuid();
+
+                var url = await _awsService.UploadFileAsync(fileBytes, codigoDocumento.ToString(), contentType, ObterCaminhoFolder(tipoEntidadeUpload));
 
                 var documento = new Documento
                 {
+                    Codigo = codigoDocumento,
                     TipoEntidade = ObterNomeEntidade(tipoEntidadeUpload),
                     CodigoEntidade = uploadDocumentoRequest.CodigoEntidade,
                     NomeArquivo = uploadDocumentoRequest.File.FileName,
@@ -86,15 +89,22 @@ namespace Application.Services
 
         public async Task<DadosDocumentoResponse> ObterDocumento(Guid codigoDocumento)
         {
-            var dadosDocumento = _documentoRepository.ObterCaminhoPorCodigo(codigoDocumento);
+            try
+            {
+                var dadosDocumento = _documentoRepository.ObterCaminhoPorCodigo(codigoDocumento);
 
-            var documento = await _awsService.GetFileAsync(dadosDocumento.CaminhoS3);
+                var documento = await _awsService.GetFileAsync(dadosDocumento.CaminhoS3);
 
-            return new DadosDocumentoResponse 
-            { 
-                DadosDocumento = dadosDocumento,
-                Documento = documento
-            };
+                return new DadosDocumentoResponse
+                {
+                    DadosDocumento = dadosDocumento,
+                    Documento = documento
+                };
+            }
+            catch (Exception ex)
+            {
+                throw; // Por algum motivo esse maravilha não ta estourando exception sem isso 
+            }
         } 
 
         public async Task<DadosDocumentoResponse> ObterFotoPerfil(Guid codigoEntidade)

@@ -8,6 +8,7 @@ using Domain.Entidades;
 using Infra.RawQueryResult;
 using Infra.Repositories.Atendimentos;
 using Infra.Repositories.Medicos;
+using Infra.Repositories.MedicoUsuarioOperacional;
 
 namespace Application.Services
 {
@@ -16,14 +17,17 @@ namespace Application.Services
         private readonly IMedicoRepository _medicoRepository;
         private readonly IMapper _mapper;
         private readonly IAtendimentoRepository _atendimentoRepository;
+        private readonly IMedicoUsuarioOperacionalRepository _medicoUsuarioOperacionalRepository;
 
         public MedicoService(IMedicoRepository medicoRepository, 
             IMapper mapper,
-            IAtendimentoRepository atendimentoRepository)
+            IAtendimentoRepository atendimentoRepository,
+            IMedicoUsuarioOperacionalRepository medicoUsuarioOperacionalRepository)
         {
             _medicoRepository = medicoRepository;
             _mapper = mapper;
             _atendimentoRepository = atendimentoRepository;
+            _medicoUsuarioOperacionalRepository = medicoUsuarioOperacionalRepository;
         }
 
         public void Cadastrar(CadastroMedicoRequest request, Guid codigoUsuario)
@@ -145,6 +149,30 @@ namespace Application.Services
             var listaDocumentos = _medicoRepository.ObterDocumentos(documentoFederal, codigoParceiro);
 
             return listaDocumentos;
+        }
+
+        public UsuariosVinculadosResponse ObterUsuariosVinculados(UsuariosVinculadosRequest request)
+        {
+            var pagina = Math.Max(1, request.Pagina.GetValueOrDefault(1));
+
+            var itensPorPagina = request.ItensPorPagina.GetValueOrDefault(25);
+            if (itensPorPagina <= 0) itensPorPagina = 25;
+
+            var listaUsuarios = _medicoUsuarioOperacionalRepository.ListarUsuariosVinculados(request.CodigoMedico, pagina, itensPorPagina);
+
+            var totalizador = _medicoUsuarioOperacionalRepository.TotalizarUsuariosVinculados(request.CodigoMedico);
+
+            var totalItens = totalizador?.Count ?? 0;
+
+            var totalPaginas = (int)Math.Ceiling((double)totalItens / itensPorPagina);
+            totalPaginas = Math.Max(1, totalPaginas);
+
+            return new UsuariosVinculadosResponse
+            {
+                UsuariosVinculados = listaUsuarios,
+                TotalPaginas = totalPaginas,
+                Itens = totalItens
+            };
         }
     }
 }
