@@ -168,7 +168,7 @@ namespace Web.Controllers
             {
                 var codigoUsuario = ObterCodigoUsuario();
 
-                var response = await _documentoService.InserirDocumento(request, codigoUsuario, Domain.Enums.TipoEntidadeUpload.Agendamento, Domain.Enums.TipoDocumento.Documento);
+                var response = await _documentoService.InserirDocumento(request, codigoUsuario, Domain.Enums.TipoEntidadeUpload.Agendamento, Domain.Enums.TipoDocumento.Documento, ehAgendamento: true);
 
                 return Ok(response);
             }

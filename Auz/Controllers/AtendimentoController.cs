@@ -124,7 +124,6 @@ namespace Web.Controllers
 
         [HttpPost("Documento")]
         [Authorize]
-        [RequestSizeLimit(long.MaxValue)]
         public async Task<IActionResult> Upload([FromForm]UploadDocumentoRequest request)
         {
             try

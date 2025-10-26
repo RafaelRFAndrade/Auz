@@ -12,10 +12,10 @@ namespace Web.Controllers
     [Route("[controller]")]
     public class DocumentoController : AuzControllerBase
     {
-        private readonly ILogger _logger;
+        private readonly ILogger<DocumentoController> _logger;
         private readonly IDocumentoService _documentoService;
 
-        public DocumentoController(ILogger logger,
+        public DocumentoController(ILogger<DocumentoController> logger,
             IDocumentoService documentoService)
         {
             _logger = logger;

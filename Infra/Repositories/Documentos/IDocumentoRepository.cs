@@ -11,5 +11,6 @@ namespace Infra.Repositories.Documentos
         ObterDadosDocumentoRawQuery ObterCaminhoPorCodigo(Guid codigoDocumento);
         ObterDadosDocumentoRawQuery ObterCaminhoPorEntidade(Guid codigoDocumento, TipoDocumento tipoDocumento);
         CountRawQuery ObterTotalizadorDocumentosPorCodigoEntidade(Guid codigoEntidade);
+        void InserirListagem(List<Documento> documentos);
     }
 }

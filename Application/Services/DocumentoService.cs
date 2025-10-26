@@ -5,6 +5,7 @@ using Application.Messaging.Response;
 using Application.Messaging.Response.Documento;
 using Domain.Entidades;
 using Domain.Enums;
+using Infra.Repositories.Agendamentos;
 using Infra.Repositories.Documentos;
 
 namespace Application.Services
@@ -13,15 +14,18 @@ namespace Application.Services
     {
         private readonly IDocumentoRepository _documentoRepository;
         private readonly IAwsService _awsService;
+        private readonly IAgendamentoRepository _agendamentoRepository;
 
         public DocumentoService(IDocumentoRepository documentoRepository,
-            IAwsService awsService)
+            IAwsService awsService,
+            IAgendamentoRepository agendamentoRepository)
         { 
             _awsService = awsService;   
             _documentoRepository = documentoRepository;
+            _agendamentoRepository = agendamentoRepository;
         }
 
-        public async Task<ResponseBase> InserirDocumento(UploadDocumentoRequest uploadDocumentoRequest, Guid codigoUsuario, TipoEntidadeUpload tipoEntidadeUpload, TipoDocumento tipoDocumento)
+        public async Task<ResponseBase> InserirDocumento(UploadDocumentoRequest uploadDocumentoRequest, Guid codigoUsuario, TipoEntidadeUpload tipoEntidadeUpload, TipoDocumento tipoDocumento, bool ehAgendamento = false)
         {
             try
             {
@@ -46,6 +50,26 @@ namespace Application.Services
                     UsuarioUpload = codigoUsuario,
                     TipoDocumento = tipoDocumento
                 };
+
+                if (ehAgendamento)
+                {
+                    var listaDocumentos = new List<Documento>();
+                    listaDocumentos.Add(documento);
+
+                    var agendamento = _agendamentoRepository.Obter(uploadDocumentoRequest.CodigoEntidade);
+
+                    documento.TipoEntidade = "Atendimento";
+                    documento.CodigoEntidade = agendamento.CodigoAtendimento;
+
+                    listaDocumentos.Add(documento);
+
+                    _documentoRepository.InserirListagem(listaDocumentos);
+
+                    return new ResponseBase
+                    {
+                        Sucesso = true
+                    };
+                }
 
                 _documentoRepository.Inserir(documento);
 

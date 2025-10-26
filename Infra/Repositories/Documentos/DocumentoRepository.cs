@@ -18,6 +18,12 @@ namespace Infra.Repositories.Documentos
             SaveChanges();
         }
 
+        public void InserirListagem(List<Documento> documentos)
+        {
+            AddRange(documentos);
+            SaveChanges();
+        }
+
         public List<DocumentoRawQuery> ObterDocumentosPorCodigoEntidade(Guid codigoEntidade, int pagina, int itensPorPagina)
         {
             const string sql =
@@ -33,7 +39,7 @@ namespace Infra.Repositories.Documentos
                     Documento AS do WITH(NOLOCK) 
                 WHERE 
                     do.CodigoEntidade = @p0
-                ORDER BY DtInclusao DESC OFFSET @p1 ROWS FETCH NEXT @p2 ROWS ONLY
+                ORDER BY do.DataUpload DESC OFFSET @p1 ROWS FETCH NEXT @p2 ROWS ONLY
                 """;
 
             var offset = (pagina - 1) * itensPorPagina;
