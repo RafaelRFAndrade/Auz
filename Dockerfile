@@ -58,10 +58,6 @@ COPY --from=build /jwt-libs/*.dll ./
 # Listar todos os arquivos .dll no diretório da aplicação
 RUN ls -la *.dll
 
-ENV ASPNETCORE_ENVIRONMENT=Production
-ENV ASPNETCORE_URLS=http://+:80
-ENV CONNECTION_STRING=Server=189.126.105.186,1433;Database=Auzys;User Id=sa;Password=kC-9xjhYUKZVXT3NP9Q_;TrustServerCertificate=True
-
 EXPOSE 8080
 
 # Iniciar aplicação
