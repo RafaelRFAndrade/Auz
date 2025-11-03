@@ -14,11 +14,22 @@ namespace Application.Services
 
         public AwsService(IConfiguration configuration)
         {
-            var region = configuration["AWS:Region"];
-            _bucketName = configuration["AWS:Bucket"];
+            // Priorizar variáveis de ambiente sobre configuration
+            var region = Environment.GetEnvironmentVariable("AWS_REGION") 
+                ?? configuration["AWS:Region"] 
+                ?? "sa-east-1";
+                
+            _bucketName = Environment.GetEnvironmentVariable("AWS_BUCKET") 
+                ?? configuration["AWS:Bucket"];
 
-            var accessKey = configuration["AWS:AccessKey"];
-            var secretKey = configuration["AWS:SecretKey"];
+            var accessKey = Environment.GetEnvironmentVariable("AWS_ACCESS_KEY") 
+                ?? configuration["AWS:AccessKey"];
+            var secretKey = Environment.GetEnvironmentVariable("AWS_SECRET_KEY") 
+                ?? configuration["AWS:SecretKey"];
+
+            // Se ainda contém placeholder, limpar
+            if (accessKey?.Contains("#{") == true) accessKey = null;
+            if (secretKey?.Contains("#{") == true) secretKey = null;
 
             if (string.IsNullOrWhiteSpace(accessKey) || string.IsNullOrWhiteSpace(secretKey))
             {

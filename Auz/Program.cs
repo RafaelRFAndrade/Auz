@@ -96,10 +96,22 @@ builder.Services.AddTransient<IAwsService, AwsService>();
 builder.Services.AddTransient<IDocumentoService, DocumentoService>();
 builder.Services.AddTransient<IParceiroService, ParceiroService>();
 
+var connectionString = Environment.GetEnvironmentVariable("CONNECTION_STRING") 
+    ?? builder.Configuration.GetConnectionString("DefaultConnection");
+    
+if (connectionString?.Contains("#{") == true)
+{
+    connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
+        ?? Environment.GetEnvironmentVariable("CONNECTION_STRING");
+}
+
+if (string.IsNullOrWhiteSpace(connectionString))
+{
+    throw new InvalidOperationException("Connection string não configurada. Configure a variável de ambiente CONNECTION_STRING ou ConnectionStrings__DefaultConnection.");
+}
+
 builder.Services.AddDbContext<RepositoryBase>(options =>
-    options.UseSqlServer(
-        builder.Configuration.GetConnectionString("DefaultConnection")
-    )
+    options.UseSqlServer(connectionString)
 );
 
 builder.Services.AddAutoMapper(config => {
@@ -137,6 +149,20 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer(options =>
 {
+    var jwtKey = Environment.GetEnvironmentVariable("JWT_KEY") 
+        ?? builder.Configuration["Jwt:Key"];
+    
+    if (jwtKey?.Contains("#{") == true)
+    {
+        jwtKey = Environment.GetEnvironmentVariable("JWT_KEY")
+            ?? Environment.GetEnvironmentVariable("Jwt__Key");
+    }
+    
+    if (string.IsNullOrWhiteSpace(jwtKey))
+    {
+        throw new InvalidOperationException("JWT Key não configurada. Configure a variável de ambiente JWT_KEY ou Jwt__Key.");
+    }
+    
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = true,
@@ -145,7 +171,7 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
         ValidIssuer = builder.Configuration["Jwt:Issuer"],
         ValidAudience = builder.Configuration["Jwt:Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
     };
 });
 
