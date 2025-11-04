@@ -35,20 +35,3 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/auz-core-api:latest
-
-      - name: Restore dependencies
-        run: |
-          cd scripts
-          dotnet restore
-
-      - name: Run the deployment script
-        working-directory: ./scripts
-        run: dotnet run
-        env:
-          PORTAINER_URL: ${{ secrets.PORTAINER_URL }}
-          USERNAME: ${{ secrets.USERNAME }}
-          PASSWORD: ${{ secrets.PASSWORD }}
-          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-          CONTAINER_NAME: "auz-core-api"
-          HOST_PORT: "8080"
-          DEBUG: "true"
