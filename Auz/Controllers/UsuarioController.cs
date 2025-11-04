@@ -45,7 +45,7 @@ namespace Web.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
+                _logger.LogError(ex, "Erro ao processar requisição: {Message}", ex.Message);
                 return StatusCode(500, new { Sucesso = false, Mensagem = "Ocorreu um erro na requisição." });
             }
         }
@@ -68,7 +68,7 @@ namespace Web.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
+                _logger.LogError(ex, "Erro ao processar requisição: {Message}", ex.Message);
                 return StatusCode(500, new { Sucesso = false, Mensagem = "Ocorreu um erro na requisição." });
             }
         }
@@ -88,7 +88,7 @@ namespace Web.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
+                _logger.LogError(ex, "Erro ao processar requisição: {Message}", ex.Message);
                 return StatusCode(500, new { Sucesso = false, Mensagem = "Ocorreu um erro na requisição." });
             }
         }
@@ -111,7 +111,7 @@ namespace Web.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
+                _logger.LogError(ex, "Erro ao processar requisição: {Message}", ex.Message);
                 return StatusCode(500, new { Sucesso = false, Mensagem = "Ocorreu um erro na requisição." });
             }
         }
@@ -132,7 +132,7 @@ namespace Web.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
+                _logger.LogError(ex, "Erro ao processar requisição: {Message}", ex.Message);
                 return StatusCode(500, new { Sucesso = false, Mensagem = "Ocorreu um erro na requisição." });
             }
         }
@@ -152,7 +152,7 @@ namespace Web.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
+                _logger.LogError(ex, "Erro ao processar requisição: {Message}", ex.Message);
                 return StatusCode(500, new { Sucesso = false, Mensagem = "Ocorreu um erro na requisição." });
             }
         }
@@ -175,7 +175,7 @@ namespace Web.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
+                _logger.LogError(ex, "Erro ao processar requisição: {Message}", ex.Message);
                 return StatusCode(500, new { Sucesso = false, Mensagem = "Ocorreu um erro na requisição." });
             }
         }
@@ -198,7 +198,7 @@ namespace Web.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
+                _logger.LogError(ex, "Erro ao processar requisição: {Message}", ex.Message);
                 return StatusCode(500, new { Sucesso = false, Mensagem = "Ocorreu um erro na requisição." });
             }
         }
@@ -221,7 +221,7 @@ namespace Web.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
+                _logger.LogError(ex, "Erro ao processar requisição: {Message}", ex.Message);
                 return StatusCode(500, new { Sucesso = false, Mensagem = "Ocorreu um erro na requisição." });
             }
         }
@@ -246,7 +246,7 @@ namespace Web.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
+                _logger.LogError(ex, "Erro ao processar requisição: {Message}", ex.Message);
                 return StatusCode(500, new { Sucesso = false, Mensagem = "Ocorreu um erro na requisição." });
             }
         }
@@ -269,7 +269,7 @@ namespace Web.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
+                _logger.LogError(ex, "Erro ao processar requisição: {Message}", ex.Message);
                 return StatusCode(500, new { Sucesso = false, Mensagem = "Ocorreu um erro na requisição." });
             }
         }
