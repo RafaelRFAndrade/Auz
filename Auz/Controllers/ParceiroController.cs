@@ -1,18 +1,21 @@
 ﻿using Application.Interfaces;
 using Application.Messaging.Exception;
 using Application.Messaging.Request.Parceiro;
+using Auz.Infrastructure.Logging;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Web.Controllers.Base;
 
 namespace Web.Controllers
 {
+    [ApiController]
+    [Route("[controller]")]
     public class ParceiroController : AuzControllerBase
     {
-        private readonly ILogger<ParceiroController> _logger;
+        private readonly ILokiLogger _logger;
         private readonly IParceiroService _parceiroService;
 
-        public ParceiroController(ILogger<ParceiroController> logger,
+        public ParceiroController(ILokiLogger logger,
             IParceiroService parceiroService)
         {
             _logger = logger;
@@ -37,7 +40,7 @@ namespace Web.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
+                _logger.LogError($"Erro ao processar requisição: {ex.Message}", null, ex);
                 return StatusCode(500, new { Sucesso = false, Mensagem = "Ocorreu um erro na requisição." });
             }
         }
@@ -60,7 +63,7 @@ namespace Web.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
+                _logger.LogError($"Erro ao processar requisição: {ex.Message}", null, ex);
                 return StatusCode(500, new { Sucesso = false, Mensagem = "Ocorreu um erro na requisição." });
             }
         }

@@ -25,6 +25,8 @@ using Application.Messaging.Request.Usuario;
 using Application.Messaging.Request.Parceiro;
 using Infra.Repositories.MedicoUsuarioOperacional;
 using Application.Messaging.Request.Agendamento;
+using Auz.Extensions;
+using Auz.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -188,6 +190,8 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddAuthorization();
 
+builder.Services.AddLokiLogging(builder.Configuration.GetSection("Logging:Loki"));
+
 var app = builder.Build();
 
 app.UseCors("AllowSpecificOrigin");
@@ -196,6 +200,8 @@ app.UseSwagger();
 app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
+
+app.UseMiddleware<RequestLoggingMiddleware>();
 
 app.UseAuthentication();
 

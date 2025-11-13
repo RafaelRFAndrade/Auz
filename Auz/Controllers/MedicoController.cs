@@ -5,6 +5,7 @@ using Application.Messaging.Request;
 using Application.Messaging.Request.Medico;
 using Application.Messaging.Response.Medico;
 using Application.Services;
+using Auz.Infrastructure.Logging;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Web.Controllers.Base;
@@ -15,11 +16,11 @@ namespace Web.Controllers
     [Route("[controller]")]
     public class MedicoController : AuzControllerBase
     {
-        private readonly ILogger<MedicoController> _logger;
+        private readonly ILokiLogger _logger;
         private readonly IMedicoService _medicoService;
         private readonly IDocumentoService _documentoService;
 
-        public MedicoController(ILogger<MedicoController> logger,
+        public MedicoController(ILokiLogger logger,
             IMedicoService medicoService,
             IDocumentoService documentoService)
         {
@@ -46,7 +47,7 @@ namespace Web.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
+                _logger.LogError($"Erro ao processar requisição: {ex.Message}", null, ex);
                 return StatusCode(500, new { Sucesso = false, Mensagem = "Ocorreu um erro na requisição." });
             }
         }
@@ -69,7 +70,7 @@ namespace Web.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
+                _logger.LogError($"Erro ao processar requisição: {ex.Message}", null, ex);
                 return StatusCode(500, new { Sucesso = false, Mensagem = "Ocorreu um erro na requisição." });
             }
         }
@@ -92,7 +93,7 @@ namespace Web.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
+                _logger.LogError($"Erro ao processar requisição: {ex.Message}", null, ex);
                 return StatusCode(500, new { Sucesso = false, Mensagem = "Ocorreu um erro na requisição." });
             }
         }
@@ -115,7 +116,7 @@ namespace Web.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
+                _logger.LogError($"Erro ao processar requisição: {ex.Message}", null, ex);
                 return StatusCode(500, new { Sucesso = false, Mensagem = "Ocorreu um erro na requisição." });
             }
         }
@@ -138,7 +139,7 @@ namespace Web.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
+                _logger.LogError($"Erro ao processar requisição: {ex.Message}", null, ex);
                 return StatusCode(500, new { Sucesso = false, Mensagem = "Ocorreu um erro na requisição." });
             }
         }
@@ -161,7 +162,7 @@ namespace Web.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
+                _logger.LogError($"Erro ao processar requisição: {ex.Message}", null, ex);
                 return StatusCode(500, new { Sucesso = false, Mensagem = "Ocorreu um erro na requisição." });
             }
         }
@@ -184,7 +185,7 @@ namespace Web.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
+                _logger.LogError($"Erro ao processar requisição: {ex.Message}", null, ex);
                 return StatusCode(500, new { Sucesso = false, Mensagem = "Ocorreu um erro na requisição." });
             }
         }
@@ -207,7 +208,7 @@ namespace Web.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
+                _logger.LogError($"Erro ao processar requisição: {ex.Message}", null, ex);
                 return StatusCode(500, new { Sucesso = false, Mensagem = "Ocorreu um erro na requisição." });
             }
         }
@@ -230,7 +231,7 @@ namespace Web.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
+                _logger.LogError($"Erro ao processar requisição: {ex.Message}", null, ex);
                 return StatusCode(500, new { Sucesso = false, Mensagem = "Ocorreu um erro na requisição." });
             }
         }
@@ -253,7 +254,7 @@ namespace Web.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
+                _logger.LogError($"Erro ao processar requisição: {ex.Message}", null, ex);
                 return StatusCode(500, new { Sucesso = false, Mensagem = "Ocorreu um erro na requisição." });
             }
         }
@@ -283,7 +284,7 @@ namespace Web.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
+                _logger.LogError($"Erro ao processar requisição: {ex.Message}", null, ex);
                 return StatusCode(500, new { Sucesso = false, Mensagem = "Ocorreu um erro na requisição." });
             }
         }
@@ -304,7 +305,7 @@ namespace Web.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
+                _logger.LogError($"Erro ao processar requisição: {ex.Message}", null, ex);
                 return StatusCode(500, new { Sucesso = false, Mensagem = "Ocorreu um erro na requisição." });
             }
         }

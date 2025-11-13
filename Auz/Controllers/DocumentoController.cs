@@ -3,6 +3,7 @@ using Application.Interfaces;
 using Application.Messaging.Exception;
 using Application.Messaging.Request;
 using Application.Messaging.Request.Documento;
+using Auz.Infrastructure.Logging;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Web.Controllers.Base;
@@ -13,10 +14,10 @@ namespace Web.Controllers
     [Route("[controller]")]
     public class DocumentoController : AuzControllerBase
     {
-        private readonly ILogger<DocumentoController> _logger;
+        private readonly ILokiLogger _logger;
         private readonly IDocumentoService _documentoService;
 
-        public DocumentoController(ILogger<DocumentoController> logger,
+        public DocumentoController(ILokiLogger logger,
             IDocumentoService documentoService)
         {
             _logger = logger;
@@ -39,7 +40,7 @@ namespace Web.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
+                _logger.LogError($"Erro ao processar requisição: {ex.Message}", null, ex);
                 return StatusCode(500, new { Sucesso = false, Mensagem = "Ocorreu um erro na requisição." });
             }
         }
@@ -64,7 +65,7 @@ namespace Web.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
+                _logger.LogError($"Erro ao processar requisição: {ex.Message}", null, ex);
                 return StatusCode(500, new { Sucesso = false, Mensagem = "Ocorreu um erro na requisição." });
             }
         }
