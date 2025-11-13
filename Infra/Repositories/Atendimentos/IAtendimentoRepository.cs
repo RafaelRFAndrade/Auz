@@ -6,7 +6,7 @@ namespace Infra.Repositories.Atendimentos
     public interface IAtendimentoRepository
     {
         void Inserir(Atendimento atendimento);
-        IEnumerable<ObterAtendimentosRawQuery> ObterAtendimentosPorCodigoUsuario(Guid codigoUsuario);
+        IEnumerable<ObterAtendimentosRawQuery> ObterAtendimentosPorCodigoParceiro(Guid codigoParceiro);
         bool ValidarAtendimentoAtivosPorMedico(Guid codigoMedico);
         bool ValidarAtendimentoAtivosPorPaciente(Guid codigoPaciente);
         List<ListarAtendimentosRawQuery> ListarAtendimentos(Guid codigoParceiro, int pagina, int itensPorPagina, string filtro);

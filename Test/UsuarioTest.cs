@@ -22,8 +22,6 @@ namespace Application.Tests.Services
     {
         private readonly Mock<IUsuarioRepository> _usuarioRepositoryMock;
         private readonly Mock<IAutenticacaoService> _autenticacaoServiceMock;
-        private readonly Mock<IAtendimentoRepository> _atendimentoRepositoryMock;
-        private readonly Mock<IAgendamentoRepository> _agendamentoRepositoryMock;
         private readonly Mock<IParceiroRepository> _parceiroRepositoryMock;
         private readonly Mock<IMapper> _mapper;
         private readonly Mock<IMedicoUsuarioOperacionalRepository> _medicoUsuarioOperacionalRepository;
@@ -34,8 +32,6 @@ namespace Application.Tests.Services
         {
             _usuarioRepositoryMock = new Mock<IUsuarioRepository>();
             _autenticacaoServiceMock = new Mock<IAutenticacaoService>();
-            _atendimentoRepositoryMock = new Mock<IAtendimentoRepository>();
-            _agendamentoRepositoryMock = new Mock<IAgendamentoRepository>();
             _parceiroRepositoryMock = new Mock<IParceiroRepository>();
             _medicoUsuarioOperacionalRepository = new Mock<IMedicoUsuarioOperacionalRepository>();
             _mapper = new Mock<IMapper>();
@@ -44,8 +40,6 @@ namespace Application.Tests.Services
             _service = new UsuarioService(
                 _usuarioRepositoryMock.Object,
                 _autenticacaoServiceMock.Object,
-                _atendimentoRepositoryMock.Object,
-                _agendamentoRepositoryMock.Object,
                 _parceiroRepositoryMock.Object,
                 _mapper.Object,
                 _medicoUsuarioOperacionalRepository.Object,
@@ -183,6 +177,82 @@ namespace Application.Tests.Services
             // Assert
             result.Sucesso.Should().BeTrue();
             result.NomeUsuario.Should().Be("Usuario Teste");
+        }
+
+        [Fact]
+        public void Login_ComCredenciaisCorretas_DeveRetornarUsuarioValido()
+        {
+            // Arrange
+            var usuario = new Usuario
+            {
+                Codigo = Guid.NewGuid(),
+                Email = "teste@teste.com",
+                Senha = new PasswordHasher<Usuario>().HashPassword(null, "123456"),
+                Nome = "Usuario Teste"
+            };
+
+            _usuarioRepositoryMock
+                .Setup(r => r.ObterPorEmail(usuario.Email))
+                .Returns(usuario);
+
+            var request = new LoginRequest { Email = usuario.Email, Senha = "123456" };
+
+            // Act
+            var result = _service.Login(request);
+
+            // Assert
+            result.Should().NotBeNull();
+            result.Email.Should().Be(usuario.Email);
+            result.Nome.Should().Be("Usuario Teste");
+        }
+
+        [Fact]
+        public void TrazerHome_ComDadosValidos_DeveRetornarRespostaCompleta()
+        {
+            // Arrange
+            var codigoUsuario = Guid.NewGuid();
+            var codigoParceiro = Guid.NewGuid();
+
+            _usuarioRepositoryMock.Setup(r => r.ObterNome(codigoUsuario))
+                .Returns(new StringRawQuery { String = "João Silva" });
+
+            _usuarioRepositoryMock.Setup(r => r.ObterQtdUsuariosPorParceiro(codigoParceiro))
+                .Returns(new CountRawQuery { Count = 5 });
+
+            _medicoRepository.Setup(r => r.ObterQtdOperadoresPorParceiro(codigoParceiro))
+                .Returns(new CountRawQuery { Count = 3 });
+
+            // Act
+            var result = _service.TrazerHome(codigoUsuario, codigoParceiro);
+
+            // Assert
+            result.Should().NotBeNull();
+            result.Sucesso.Should().BeTrue();
+            result.NomeUsuario.Should().Be("João Silva");
+        }
+
+        [Fact]
+        public void TrazerHome_ComContadoresZero_DeveRetornarZero()
+        {
+            // Arrange
+            var codigoUsuario = Guid.NewGuid();
+            var codigoParceiro = Guid.NewGuid();
+
+            _usuarioRepositoryMock.Setup(r => r.ObterNome(codigoUsuario))
+                .Returns(new StringRawQuery { String = "Usuario" });
+
+            _usuarioRepositoryMock.Setup(r => r.ObterQtdUsuariosPorParceiro(codigoParceiro))
+                .Returns(new CountRawQuery { Count = 0 });
+
+            _medicoRepository.Setup(r => r.ObterQtdOperadoresPorParceiro(codigoParceiro))
+                .Returns(new CountRawQuery { Count = 0 });
+
+            // Act
+            var result = _service.TrazerHome(codigoUsuario, codigoParceiro);
+
+            // Assert
+            result.Should().NotBeNull();
+            result.Sucesso.Should().BeTrue();
         }
     }
 }

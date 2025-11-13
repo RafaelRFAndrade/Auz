@@ -3,7 +3,7 @@ using Application.Messaging.Exception;
 using Application.Messaging.Request;
 using Application.Messaging.Request.Usuario;
 using Auz.Infrastructure.Logging;
-using Azure.Core;
+using Domain.Entidades;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Web.Controllers.Base;
@@ -164,9 +164,27 @@ namespace Web.Controllers
         {
             try
             {
+                if (request == null)
+                {
+                    _logger.LogWarning("Tentativa de login com request nulo");
+                    return BadRequest(new { Sucesso = false, Mensagem = "Dados de login não fornecidos." });
+                }
+
                 var usuario = _usuarioService.Login(request);
 
+                if (usuario == null)
+                {
+                    _logger.LogWarning("Login retornou usuário nulo", new Dictionary<string, object> { ["email"] = request.Email });
+                    return BadRequest(new { Sucesso = false, Mensagem = "Credenciais inválidas." });
+                }
+
                 var token = _autenticacaoService.GenerateToken(usuario);
+
+                if (string.IsNullOrWhiteSpace(token))
+                {
+                    _logger.LogError("Token gerado está vazio ou nulo", new Dictionary<string, object> { ["usuarioId"] = usuario.Codigo.ToString() });
+                    return StatusCode(500, new { Sucesso = false, Mensagem = "Erro ao gerar token de autenticação." });
+                }
 
                 return Ok(new { Token = token });
             }
@@ -176,7 +194,13 @@ namespace Web.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Erro ao processar requisição: {ex.Message}", null, ex);
+                _logger.LogError($"Erro ao processar requisição de login: {ex.Message}", 
+                    new Dictionary<string, object> 
+                    { 
+                        ["endpoint"] = "/Usuario/Login",
+                        ["email"] = request?.Email ?? "não fornecido"
+                    }, 
+                    ex);
                 return StatusCode(500, new { Sucesso = false, Mensagem = "Ocorreu um erro na requisição." });
             }
         }
@@ -271,6 +295,52 @@ namespace Web.Controllers
             catch (Exception ex)
             {
                 _logger.LogError($"Erro ao processar requisição: {ex.Message}", null, ex);
+                return StatusCode(500, new { Sucesso = false, Mensagem = "Ocorreu um erro na requisição." });
+            }
+        }
+
+        /// <summary>
+        /// Endpoint de teste temporário para provocar NullReferenceException e testar o sistema de logging
+        /// ATENÇÃO: Temporário!
+        /// </summary>
+        [HttpPost("TesteNullReference")]
+        [Authorize]
+        public IActionResult TesteNullReference()
+        {
+            try
+            {
+                _logger.LogInformation("Iniciando teste de NullReferenceException");
+
+                // Simular um cenário onde um objeto pode ser null
+                Usuario? usuario = null;
+                
+                // Forçar NullReferenceException para testar o logging
+                var nome = usuario!.Nome; // NullReferenceException aqui
+
+                return Ok(new { Mensagem = "Isso nunca será executado" });
+            }
+            catch (NullReferenceException ex)
+            {
+                // Log específico para NullReferenceException
+                _logger.LogError("NullReferenceException capturada no teste", 
+                    new Dictionary<string, object> 
+                    { 
+                        ["endpoint"] = "/Usuario/TesteNullReference",
+                        ["tipoErro"] = "NullReferenceException",
+                        ["mensagem"] = ex.Message,
+                        ["stackTrace"] = ex.StackTrace ?? "N/A"
+                    }, 
+                    ex);
+                
+                return StatusCode(500, new { 
+                    Sucesso = false, 
+                    Mensagem = "NullReferenceException capturada e logada com sucesso no Loki",
+                    Erro = ex.Message 
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Erro inesperado no teste: {ex.Message}", null, ex);
                 return StatusCode(500, new { Sucesso = false, Mensagem = "Ocorreu um erro na requisição." });
             }
         }

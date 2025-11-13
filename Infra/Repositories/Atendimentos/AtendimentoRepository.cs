@@ -18,7 +18,7 @@ namespace Infra.Repositories.Atendimentos
             SaveChanges();  
         }
 
-        public IEnumerable<ObterAtendimentosRawQuery> ObterAtendimentosPorCodigoUsuario(Guid codigoParceiro)
+        public IEnumerable<ObterAtendimentosRawQuery> ObterAtendimentosPorCodigoParceiro(Guid codigoParceiro)
         {
             const string sql =
                 """

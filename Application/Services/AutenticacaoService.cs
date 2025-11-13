@@ -20,22 +20,29 @@ namespace Application.Services
 
         public string GenerateToken(Usuario usuario)
         {
+            if (usuario == null)
+                throw new ArgumentNullException(nameof(usuario), "Usuário não pode ser nulo para gerar token");
+
+            var jwtKey = _configuration["Jwt:Key"];
+            if (string.IsNullOrWhiteSpace(jwtKey))
+                throw new InvalidOperationException("Chave JWT não configurada");
+
             var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"]);
+            var key = Encoding.ASCII.GetBytes(jwtKey);
 
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(new[]
                 {
                 new Claim(ClaimTypes.NameIdentifier, usuario.Codigo.ToString()),
-                new Claim(ClaimTypes.Name, usuario.Nome),
-                new Claim(ClaimTypes.Email, usuario.Email),
+                new Claim(ClaimTypes.Name, usuario.Nome ?? string.Empty),
+                new Claim(ClaimTypes.Email, usuario.Email ?? string.Empty),
                 new Claim(ClaimTypes.Role, usuario.TipoPermissao.ToString()),
                 new Claim("ParceiroId", usuario.CodigoParceiro.ToString())
             }),
-                Expires = DateTime.UtcNow.AddMinutes(double.Parse(_configuration["Jwt:ExpireMinutes"])),
-                Issuer = _configuration["Jwt:Issuer"],
-                Audience = _configuration["Jwt:Audience"],
+                Expires = DateTime.UtcNow.AddMinutes(double.Parse(_configuration["Jwt:ExpireMinutes"] ?? "60")),
+                Issuer = _configuration["Jwt:Issuer"] ?? "Auz",
+                Audience = _configuration["Jwt:Audience"] ?? "Auz/Usuario",
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
 

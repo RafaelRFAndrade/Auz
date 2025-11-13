@@ -4,9 +4,7 @@ using Application.Messaging.Request.Atendimento;
 using Application.Messaging.Response.Atendimento;
 using AutoMapper;
 using Domain.Entidades;
-using Infra.Repositories.Agendamentos;
 using Infra.Repositories.Atendimentos;
-using Infra.Repositories.Documentos;
 using Infra.Repositories.Medicos;
 using Infra.Repositories.Pacientes;
 
@@ -17,22 +15,16 @@ namespace Application.Services
         private readonly IAtendimentoRepository _atendimentoRepository;
         private readonly IMedicoRepository _medicoRepository;
         private readonly IPacienteRepository _pacienteRepository;
-        private readonly IDocumentoRepository _documentoRepository;
-        private readonly IAgendamentoRepository _agendamentoRepository;
         private readonly IMapper _mapper;
 
         public AtendimentoService(IAtendimentoRepository atendimentoRepository,
             IMedicoRepository medicoRepository,
             IPacienteRepository pacienteRepository,
-            IDocumentoRepository documentoRepository,
-            IAgendamentoRepository agendamentoRepository,
             IMapper mapper)
         {
             _atendimentoRepository = atendimentoRepository;
             _medicoRepository = medicoRepository;
             _pacienteRepository = pacienteRepository;
-            _documentoRepository = documentoRepository;
-            _agendamentoRepository = agendamentoRepository;
             _mapper = mapper;
         }
 

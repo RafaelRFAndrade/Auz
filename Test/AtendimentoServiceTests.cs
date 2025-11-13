@@ -21,8 +21,6 @@ namespace Application.Tests.Services
         private readonly Mock<IAtendimentoRepository> _atendimentoRepoMock;
         private readonly Mock<IMedicoRepository> _medicoRepoMock;
         private readonly Mock<IPacienteRepository> _pacienteRepoMock;
-        private readonly Mock<IDocumentoRepository> _documentoRepoMock;
-        private readonly Mock<IAgendamentoRepository> _agendamentoRepoMock;
         private readonly Mock<IMapper> _mapperMock;
         private readonly AtendimentoService _service;
 
@@ -31,16 +29,12 @@ namespace Application.Tests.Services
             _atendimentoRepoMock = new Mock<IAtendimentoRepository>();
             _medicoRepoMock = new Mock<IMedicoRepository>();
             _pacienteRepoMock = new Mock<IPacienteRepository>();
-            _documentoRepoMock = new Mock<IDocumentoRepository>();
-            _agendamentoRepoMock = new Mock<IAgendamentoRepository>();
             _mapperMock = new Mock<IMapper>();
 
             _service = new AtendimentoService(
                 _atendimentoRepoMock.Object,
                 _medicoRepoMock.Object,
                 _pacienteRepoMock.Object,
-                _documentoRepoMock.Object,
-                _agendamentoRepoMock.Object,
                 _mapperMock.Object
             );
         }
@@ -253,6 +247,104 @@ namespace Application.Tests.Services
 
             // Assert
             response.DescricaoAtendimento.Should().Be("Consulta Teste");
+        }
+
+        [Fact]
+        public void ListarAtendimentos_ComListaVazia_DeveRetornarListaVazia()
+        {
+            // Arrange
+            var request = new ListarAtendimentosRequest
+            {
+                Pagina = 1,
+                ItensPorPagina = 10
+            };
+
+            _atendimentoRepoMock.Setup(r => r.ListarAtendimentos(It.IsAny<Guid>(), 1, 10, It.IsAny<string>()))
+                .Returns(new List<ListarAtendimentosRawQuery>());
+
+            _atendimentoRepoMock.Setup(r => r.TotalizarAtendimentos(It.IsAny<Guid>(), It.IsAny<string>()))
+                .Returns(new CountRawQuery { Count = 0 });
+
+            // Act
+            var result = _service.ListarAtendimentos(request, Guid.NewGuid(), Guid.NewGuid());
+
+            // Assert
+            result.Atendimentos.Should().BeEmpty();
+            result.Itens.Should().Be(0);
+            result.TotalPaginas.Should().Be(1);
+        }
+
+        [Fact]
+        public void Cadastrar_ComPacienteExistente_DeveInserirAtendimento()
+        {
+            // Arrange
+            var medico = new Medico { Codigo = Guid.NewGuid(), DocumentoFederal = "123" };
+            var paciente = new Paciente { Codigo = Guid.NewGuid(), DocumentoFederal = "456" };
+
+            _medicoRepoMock.Setup(r => r.ObterPorDocumentoFederal("123", It.IsAny<Guid>())).Returns(medico);
+            _pacienteRepoMock.Setup(r => r.ObterPorDocumentoFederal("456", It.IsAny<Guid>())).Returns(paciente);
+
+            var request = new CadastroAtendimentoRequest
+            {
+                DocumentoFederalMedico = "123",
+                DocumentoFederalPaciente = "456",
+                CadastrarPaciente = false,
+                Descricao = "Consulta"
+            };
+
+            // Act
+            _service.Cadastrar(request, Guid.NewGuid(), Guid.NewGuid());
+
+            // Assert
+            _atendimentoRepoMock.Verify(r => r.Inserir(It.IsAny<Atendimento>()), Times.Once);
+        }
+
+        [Fact]
+        public void Deletar_ComAtendimentoAtivo_DeveAlterarSituacaoParaDesativo()
+        {
+            // Arrange
+            var codigoAtendimento = Guid.NewGuid();
+            var atendimento = new Atendimento
+            {
+                Codigo = codigoAtendimento,
+                Situacao = Situacao.Ativo
+            };
+
+            _atendimentoRepoMock.Setup(r => r.Obter(codigoAtendimento)).Returns(atendimento);
+
+            // Act
+            _service.Deletar(codigoAtendimento);
+
+            // Assert
+            atendimento.Situacao.Should().Be(Situacao.Desativo);
+            _atendimentoRepoMock.Verify(r => r.Atualizar(atendimento), Times.Once);
+        }
+
+        [Fact]
+        public void ObterRelacionamentos_ComAtendimentoExistente_DeveRetornarResponse()
+        {
+            // Arrange
+            var codigo = Guid.NewGuid();
+            var atendimento = new ObterAtendimentoRawQuery 
+            { 
+                CodigoAtendimento = codigo,
+                DescricaoAtendimento = "Consulta de Rotina"
+            };
+
+            _atendimentoRepoMock.Setup(r => r.ObterAtendimento(codigo)).Returns(atendimento);
+
+            _mapperMock
+                .Setup(m => m.Map(It.IsAny<ObterAtendimentoRawQuery>(), It.IsAny<ObterAtendimentoResponse>()))
+                .Callback<ObterAtendimentoRawQuery, ObterAtendimentoResponse>((src, dest) =>
+                {
+                    dest.DescricaoAtendimento = src.DescricaoAtendimento;
+                });
+
+            // Act
+            var response = _service.ObterRelacionamentos(codigo);
+
+            // Assert
+            response.Should().NotBeNull();
         }
     }
 }

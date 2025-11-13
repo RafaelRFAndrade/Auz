@@ -6,8 +6,6 @@ using Application.Messaging.Response.Usuario;
 using AutoMapper;
 using Domain.Entidades;
 using Domain.Enums;
-using Infra.Repositories.Agendamentos;
-using Infra.Repositories.Atendimentos;
 using Infra.Repositories.Medicos;
 using Infra.Repositories.MedicoUsuarioOperacional;
 using Infra.Repositories.Parceiro;
@@ -21,8 +19,6 @@ namespace Application.Services
     {
         private readonly IUsuarioRepository _usuarioRepository;
         private readonly IAutenticacaoService _autenticacaoService;
-        private readonly IAgendamentoRepository _agendamentoRepository;
-        private readonly IAtendimentoRepository _atendimentoRepository;
         private readonly IParceiroRepository _parceiroRepository;
         private readonly IMapper _mapper;
         private readonly IMedicoUsuarioOperacionalRepository _medicoUsuarioOperacionalRepository;
@@ -30,8 +26,6 @@ namespace Application.Services
 
         public UsuarioService(IUsuarioRepository usuarioRepository,
             IAutenticacaoService autenticacaoService,
-            IAtendimentoRepository atendimentoRepository,
-            IAgendamentoRepository agendamentoRepository,
             IParceiroRepository parceiroRepository,
             IMapper mapper,
             IMedicoUsuarioOperacionalRepository medicoUsuarioOperacionalRepository,
@@ -39,8 +33,6 @@ namespace Application.Services
         {
             _usuarioRepository = usuarioRepository;
             _autenticacaoService = autenticacaoService;
-            _agendamentoRepository = agendamentoRepository;
-            _atendimentoRepository = atendimentoRepository;
             _parceiroRepository = parceiroRepository;
             _mapper = mapper;
             _medicoUsuarioOperacionalRepository = medicoUsuarioOperacionalRepository;

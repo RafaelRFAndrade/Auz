@@ -125,8 +125,11 @@ namespace Application.Services
         {
             var paciente = _pacienteRepository.Obter(codigoPaciente);
 
+            if (paciente == null)
+                throw new AuzException("Paciente não encontrado");
+
             if (paciente.CodigoUsuario != codigoUsuario)
-                throw new AuzException("Usuário não tem permissão para vizualizar esse médico");
+                throw new AuzException("Usuário não tem permissão para vizualizar esse paciente");
 
             return paciente;
         }
