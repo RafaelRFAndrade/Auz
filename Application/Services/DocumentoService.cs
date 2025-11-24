@@ -56,17 +56,41 @@ namespace Application.Services
 
                 if (ehAgendamento)
                 {
-                    var listaDocumentos = new List<Documento>();
-                    listaDocumentos.Add(documento);
-
                     var agendamento = _agendamentoRepository.Obter(uploadDocumentoRequest.CodigoEntidade);
 
-                    documento.TipoEntidade = "Atendimento";
-                    documento.CodigoEntidade = agendamento.CodigoAtendimento;
+                    var documentoAgendamento = new Documento
+                    {
+                        Codigo = codigoDocumento,
+                        TipoEntidade = ObterNomeEntidade(tipoEntidadeUpload),
+                        CodigoEntidade = uploadDocumentoRequest.CodigoEntidade,
+                        NomeArquivo = uploadDocumentoRequest.File.FileName,
+                        CaminhoS3 = url,
+                        Bucket = "auzys-documentos",
+                        TipoConteudo = contentType,
+                        TamanhoBytes = fileBytes.Length,
+                        UsuarioUpload = codigoUsuario,
+                        TipoDocumento = tipoDocumento,
+                        DataUpload = DateTime.Now
+                    };
 
-                    listaDocumentos.Add(documento);
+                    var documentoAtendimento = new Documento
+                    {
+                        Codigo = Guid.NewGuid(),
+                        TipoEntidade = "Atendimento",
+                        CodigoEntidade = agendamento.CodigoAtendimento,
+                        NomeArquivo = uploadDocumentoRequest.File.FileName,
+                        CaminhoS3 = url,
+                        Bucket = "auzys-documentos",
+                        TipoConteudo = contentType,
+                        TamanhoBytes = fileBytes.Length,
+                        UsuarioUpload = codigoUsuario,
+                        TipoDocumento = tipoDocumento,
+                        DataUpload = DateTime.Now
+                    };
 
-                    _documentoRepository.InserirListagem(listaDocumentos);
+                    _documentoRepository.Inserir(documentoAgendamento);
+                    _documentoRepository.Inserir(documentoAtendimento);
+
 
                     return new ResponseBase
                     {
